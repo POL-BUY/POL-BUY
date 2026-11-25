@@ -1,1 +1,253 @@
 
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>POL BUY</title>
+
+<style>
+:root {
+  --black:#11120f;
+  --green:#174333;
+  --gold:#d5bd55;
+  --white:#fff;
+  --bg:#f5f5f1;
+  --grey:#777;
+  --line:#e2e2dc;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--black);font-family:Arial,sans-serif}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+.topbar{background:var(--black);color:white;text-align:center;padding:11px;font-size:11px;letter-spacing:1.4px}
+header{height:82px;background:white;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 5%;position:sticky;top:0;z-index:10}
+.logo{display:flex;align-items:center;gap:12px;text-decoration:none;color:#111;font-weight:900;letter-spacing:2px}
+.logo img{width:54px;height:54px;object-fit:contain}
+nav{display:flex;gap:25px}
+nav a{font-size:11px;text-transform:uppercase;letter-spacing:1px;text-decoration:none;color:#222}
+.header-buttons{display:flex;gap:8px}
+.header-buttons button{background:white;border:1px solid var(--line);padding:11px;font-size:11px;text-transform:uppercase}
+.hero{min-height:500px;background:linear-gradient(90deg,rgba(0,0,0,.78),rgba(0,0,0,.15)),linear-gradient(130deg,#20251f,#697363,#a9a48e);display:flex;align-items:center;padding:7%;color:white}
+.hero-content{max-width:600px}
+.eyebrow{font-size:11px;letter-spacing:3px;color:var(--gold);text-transform:uppercase;font-weight:bold}
+.hero h1{font-size:clamp(45px,7vw,82px);line-height:.95;margin:20px 0;letter-spacing:-3px}
+.hero p{font-size:14px;line-height:1.8;color:#eee;max-width:450px}
+.btn{background:var(--green);color:white;border:1px solid var(--green);padding:15px 22px;font-size:11px;letter-spacing:1px;text-transform:uppercase;font-weight:bold}
+.btn:hover{background:#245d49}
+.btn.white{background:white;color:#111;border-color:white}
+.btn.outline{background:transparent;color:#111;border-color:#111}
+section{padding:65px 5%}
+.section-title{font-size:30px;margin:10px 0}
+.subtitle{font-size:12px;color:var(--grey);line-height:1.6}
+.categories{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:25px}
+.category{height:250px;background:linear-gradient(135deg,#26372d,#73806e);padding:30px;color:white;display:flex;flex-direction:column;justify-content:end}
+.category:nth-child(2){background:linear-gradient(135deg,#272a27,#8a8d82)}
+.category h3{font-size:28px;margin:0 0 12px}
+.category a{color:white;font-size:11px;letter-spacing:1px}
+.brands{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;border-block:1px solid var(--line);padding:28px 0;font-weight:900;letter-spacing:1px}
+.products{display:grid;grid-template-columns:repeat(4,1fr);gap:17px;margin-top:25px}
+.product{background:white;border:1px solid var(--line)}
+.product-image{height:230px;background:linear-gradient(140deg,#e3e5df,#bfc5b8);display:flex;align-items:center;justify-content:center}
+.product-image:after{content:"";width:90px;height:145px;background:linear-gradient(90deg,#222,#555,#222);clip-path:polygon(25% 0,75% 0,100% 20%,83% 35%,78% 100%,22% 100%,17% 35%,0 20%)}
+.product-info{padding:16px}
+.product-info h3{font-size:13px;margin:0 0 7px}
+.product-info p{font-size:11px;color:var(--grey)}
+.product-bottom{display:flex;justify-content:space-between;align-items:center;margin-top:12px}
+.product-bottom button{background:#111;color:white;border:0;padding:10px;font-size:10px;text-transform:uppercase}
+.shipping{background:#17372b;color:white;padding:35px 5%;display:flex;justify-content:space-between;align-items:center;gap:20px}
+.shipping strong{font-size:21px}
+.shipping p{font-size:12px;color:#ddd}
+footer{background:#11120f;color:white;padding:40px 5%;display:flex;justify-content:space-between;flex-wrap:wrap;gap:25px}
+footer p{font-size:11px;color:#aaa;line-height:1.8}
+.overlay{display:none;position:fixed;inset:0;background:#0008;z-index:20}
+.overlay.open{display:block}
+.drawer{position:fixed;right:0;top:0;height:100%;width:min(460px,100%);background:white;z-index:21;padding:25px;overflow:auto;transform:translateX(110%);transition:.25s}
+.drawer.open{transform:translateX(0)}
+.drawer-head{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding-bottom:15px;margin-bottom:20px}
+.close{border:0;background:none;font-size:25px}
+.field{margin:13px 0}
+.field label{display:block;font-size:10px;font-weight:bold;text-transform:uppercase;margin-bottom:7px}
+.field input,.field select,.field textarea{width:100%;padding:12px;border:1px solid #ccc;background:white}
+.field textarea{min-height:85px}
+.drawer .btn{width:100%;margin-top:10px}
+.cart-line{padding:14px 0;border-bottom:1px solid var(--line);font-size:12px;display:flex;justify-content:space-between;gap:12px}
+.total{display:flex;justify-content:space-between;padding:10px 0;font-size:13px}
+.notice{background:#f1f2ec;padding:12px;border-left:3px solid var(--gold);font-size:11px;line-height:1.6;margin:15px 0}
+.modal{display:none;position:fixed;inset:0;background:#0009;z-index:30;align-items:center;justify-content:center;padding:15px}
+.modal.open{display:flex}
+.modal-content{background:white;width:min(560px,100%);max-height:90vh;overflow:auto;padding:25px}
+.sizes{display:flex;gap:8px;flex-wrap:wrap;margin:15px 0}
+.sizes button{background:white;border:1px solid #ccc;padding:10px 15px}
+.sizes button.selected{background:var(--green);color:white}
+.admin{display:none;padding:40px 5%;background:#e9ebe4}
+.admin.open{display:block}
+.admin-item{background:white;padding:15px;margin:10px 0;font-size:12px}
+@media(max-width:850px){nav{display:none}.products{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:520px){header{padding:0 3%}.logo img{width:43px;height:43px}.header-buttons button{padding:8px;font-size:9px}.categories{grid-template-columns:1fr}.product-image{height:175px}.shipping{display:block}.hero{min-height:420px}}
+</style>
+</head>
+
+<body>
+
+<div class="topbar">
+LIVRAISON MONDIALE · 3,99 € · GRATUITE DÈS 24,99 €
+</div>
+
+<header>
+<a href="#" class="logo">
+<img src="LIEN DU LOGO A METTRE" alt="POL BUY">
+<span>POL BUY</span>
+</a>
+
+<nav>
+<a href="#collections">Collections</a>
+<a href="#articles">Articles</a>
+<a href="#marques">Marques</a>
+</nav>
+
+<div class="header-buttons">
+<button id="accountBtn">Compte</button>
+<button id="cartBtn">Panier (<span id="cartCount">0</span>)</button>
+</div>
+</header>
+
+<main>
+<section class="hero">
+<div class="hero-content">
+<div class="eyebrow">La sélection POL BUY</div>
+<h1>LE STYLE.<br>À VOTRE FAÇON.</h1>
+<p>Découvrez notre sélection de vêtements neufs pour adultes et enfants. Des marques sélectionnées et un style affirmé.</p>
+<a href="#articles"><button class="btn white">Découvrir les articles</button></a>
+</div>
+</section>
+
+<section id="collections">
+<div class="eyebrow">Nos collections</div>
+<h2 class="section-title">Choisissez votre collection</h2>
+<p class="subtitle">Des vêtements neufs pour toute la famille.</p>
+<div class="categories">
+<div class="category">
+<h3>Collection adulte</h3>
+<a href="#articles" data-filter="adulte">DÉCOUVRIR →</a>
+</div>
+<div class="category">
+<h3>Collection enfant</h3>
+<a href="#articles" data-filter="enfant">DÉCOUVRIR →</a>
+</div>
+</div>
+</section>
+
+<section id="articles">
+<div class="eyebrow">POL BUY</div>
+<h2 class="section-title">Nos articles</h2>
+<div style="margin-top:15px">
+<select id="filterSelect">
+<option value="tous">Tous les articles</option>
+<option value="adulte">Adulte</option>
+<option value="enfant">Enfant</option>
+</select>
+</div>
+<div class="products" id="productGrid"></div>
+</section>
+
+<section id="marques">
+<div class="eyebrow">Nos marques</div>
+<h2 class="section-title">Les marques sélectionnées</h2>
+<div class="brands">
+<span>CP COMPANY</span>
+<span>STONE ISLAND</span>
+<span>NIKE</span>
+<span>UNDER ARMOUR</span>
+</div>
+</section>
+
+<div class="shipping">
+<div>
+<strong>Livraison partout dans le monde</strong>
+<p>3,99 € de livraison · Gratuite dès 24,99 € d'achat</p>
+</div>
+<a href="#articles"><button class="btn white">Voir les articles</button></a>
+</div>
+</main>
+
+<section class="admin" id="adminArea">
+<div class="eyebrow">Administration</div>
+<h2>Tableau de bord POL BUY</h2>
+<button class="btn" id="addProductBtn">Ajouter un produit</button>
+<button class="btn outline" id="ordersBtn">Voir les commandes</button>
+<div id="adminContent"></div>
+</section>
+
+<footer>
+<div>
+<strong>POL BUY</strong>
+<p>Vêtements neufs pour adultes et enfants.<br>Livraison dans le monde entier.</p>
+</div>
+<div>
+<strong>Service client</strong>
+<p>© <span id="year"></span> POL BUY</p>
+</div>
+</footer>
+
+<div class="overlay" id="overlay"></div>
+
+<aside class="drawer" id="cartDrawer">
+<div class="drawer-head"><strong>Mon panier</strong><button class="close" data-close>×</button></div>
+<div id="cartItems"></div>
+<div class="total"><span>Sous-total</span><strong id="subtotal">0,00 €</strong></div>
+<div class="total"><span>Livraison</span><strong id="shippingPrice">0,00 €</strong></div>
+<div class="total"><strong>Total</strong><strong id="grandTotal">0,00 €</strong></div>
+<button class="btn" id="checkoutBtn">Commander</button>
+<p class="subtitle">Livraison offerte dès 24,99 € d'achat.</p>
+</aside>
+
+<aside class="drawer" id="accountDrawer">
+<div class="drawer-head"><strong>Mon compte</strong><button class="close" data-close>×</button></div>
+<div class="field"><label>E-mail</label><input id="accountEmail" type="email"></div>
+<div class="field"><label>Mot de passe</label><input id="accountPassword" type="password"></div>
+<button class="btn" id="demoLogin">Connexion aperçu</button>
+<button class="btn outline" id="googleLogin">Continuer avec Google</button>
+<div class="notice">La connexion réelle Google et e-mail nécessitera la configuration de Firebase.</div>
+<hr>
+<h3>Mes demandes</h3>
+<button class="btn outline" id="requestProductBtn">Demander un produit</button>
+<button class="btn outline" id="refundBtn">Demander un remboursement</button>
+<button class="btn outline" id="adminLoginBtn">Accès gestion</button>
+<div id="accountInfo"></div>
+</aside>
+
+<div class="modal" id="productModal">
+<div class="modal-content">
+<button class="close" data-close style="float:right">×</button>
+<div id="productModalContent"></div>
+</div>
+</div>
+
+<div class="modal" id="checkoutModal">
+<div class="modal-content">
+<button class="close" data-close style="float:right">×</button>
+<h2>Adresse de livraison</h2>
+<p class="subtitle">Renseignez votre adresse avant de continuer vers PayPal.</p>
+<div class="field"><label>Prénom</label><input id="firstName"></div>
+<div class="field"><label>Nom</label><input id="lastName"></div>
+<div class="field"><label>Adresse</label><input id="address"></div>
+<div class="field"><label>Code postal</label><input id="postal"></div>
+<div class="field"><label>Ville</label><input id="city"></div>
+<div class="field"><label>Pays</label><input id="country"></div>
+<div class="field"><label>Téléphone facultatif</label><input id="phone"></div>
+<div class="notice">Le paiement réel devra être vérifié avec PayPal avant de confirmer la commande.</div>
+<button class="btn" id="paypalBtn">Continuer avec PayPal</button>
+</div>
+</div>
+
+<div class="modal" id="formModal">
+<div class="modal-content">
+<button class="close" data-close style="float:right">×</button>
+<div id="formModalContent"></div>
+</div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
