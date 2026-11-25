@@ -1,4 +1,3 @@
-
 const PAYPAL_URL = "https://www.paypal.com/paypalme/SH0PNOVA/";
 const OWNER_EMAIL = "pc2alex.les@gmail.com";
 
