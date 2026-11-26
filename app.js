@@ -1,24 +1,16 @@
-
 /* =========================================================
    POL BUY — APP.JS COMPLET
    Catalogue + filtres + panier + compte Firebase + commandes.
+   Fichier à charger dans index.html avec type="module".
    ========================================================= */
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-app.js";
-import {
-  getFirestore, collection, getDocs, addDoc, doc, setDoc,
-  updateDoc, query, where, serverTimestamp
-} from "https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore.js";
-
-import {
-  getAuth, createUserWithEmailAndPassword,
-  signInWithEmailAndPassword, GoogleAuthProvider,
-  signInWithPopup, signOut, onAuthStateChanged, updateProfile
-} from "https://www.gstatic.com/firebasejs/13.4.0/firebase-auth.js";
+import { getFirestore, collection, getDocs, addDoc, doc, setDoc, updateDoc, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-auth.js";
 
 // CONFIGURATION FIREBASE
 const firebaseConfig = {
-  apiKey: "AIzaSyCBpBr4GF24awpeBCHsO3r8kwo_tWHI07A",
+  apiKey: "AIzaSyCBp4GR4awpeBCHsO3r8kwo_tWHI07A",
   authDomain: "pol-buy.firebaseapp.com",
   projectId: "pol-buy",
   storageBucket: "pol-buy.firebasestorage.app",
@@ -38,18 +30,8 @@ const EMAILJS_NEW_ORDER_TEMPLATE_ID = "template_8eqf2pr";
 const EMAILJS_TRACKING_TEMPLATE_ID = "template_vr7m9e7";
 const EMAILJS_PUBLIC_KEY = "x2MvJKVWxwA6DG6Mg";
 
-const CART_KEY = "polbuy_cart";
-let currentUser = null;
-let activeCategory = "all";
-
-// =========================================================
-// CATALOGUE COMPLET
-// =========================================================
-
+// CATALOGUE PRODUITS
 const STARTER_PRODUCTS = [
-
-  // ---------------- NIKE ----------------
-
   {
     id: "nike-aroswft-pantalon",
     brand: "Nike",
@@ -60,10 +42,9 @@ const STARTER_PRODUCTS = [
       "https://img01.ztat.net/article/spp-media-p1/69d82f5926a146be8b4be90ba840fe2e/09884b8ce44240ec9908a752214e2f36.jpg?imwidth=1800"
     ],
     colors: ["Noir"],
-    sizes: ["XS", "S", "M", "L", "XL", "XXL", "XXXL"],
+    sizes: ["XS", "S", "M", "L", "XL", "XXL"],
     active: true
   },
-
   {
     id: "nike-trail-running-pants",
     brand: "Nike",
@@ -74,86 +55,82 @@ const STARTER_PRODUCTS = [
       "https://media.intersport.fr/is/image/intersportfr/DX0855_0SX_FA?$product_grey$&layer=comp&fit=constrain,0&$produit_xl$&fmt=webp"
     ],
     colors: ["Selon photo"],
-    sizes: ["XS", "S", "M", "L", "XL", "XXL", "XXXL"],
+    sizes: ["XS", "S", "M", "L", "XL", "XXL"],
     active: true
   },
-
   {
     id: "nike-running-division",
     brand: "Nike",
     category: "Nike",
-    name: "Running Nike Division",
+    name: "Running Division",
     price: 9.56,
     images: [
       "https://fast-shop.app/_next/image?url=https%3A%2F%2Fi.ibb.co%2F5hzqCm5P%2F05c9d4879eb3.jpg&w=1920&q=75"
     ],
     colors: ["Noir"],
-    sizes: ["XS", "S", "M", "L", "XL", "XXL", "XXXL"],
+    sizes: ["XS", "S", "M", "L", "XL", "XXL"],
     active: true
   },
-
   {
     id: "nike-running-division-zip-noir",
     brand: "Nike",
     category: "Nike",
-    name: "Haut zippé Nike Running Division noir",
+    name: "Haut zippé Nike Running Division",
     price: 4.00,
     images: [
-      "https://tonrunning.com/cdn/shop/files/FCF8F5AA-A5D3-47B5-A420-4518C27DAE1E_2048x2048.png?v=1790045779",
-      "https://tonrunning.com/cdn/shop/files/38214FDF-2C59-4BBE-A3CE-3884740D0C8E_2048x2048.png?v=1790045779"
+      "https://tonrunning.com/cdn/shop/files/FCF8F5AA-A5D3-47B5-A420-4518C27DAE1E_2048x2048.png?v=1790045779"
     ],
-    colors: ["Noir"],
-    sizes: ["XS", "S", "M", "L", "XL", "XXL", "XXXL"],
+    colorImages: {
+      "Noir": "https://tonrunning.com/cdn/shop/files/FCF8F5AA-A5D3-47B5-A420-4518C27DAE1E_2048x2048.png?v=1790045779",
+      "Vert menthe/bleu": "https://tonrunning.com/cdn/shop/files/CF4771F7-120D-4173-A1CD-130BB07D3885_2048x2048.png?v=1790045807"
+    },
+    colors: ["Noir", "Vert menthe/bleu"],
+    sizes: ["XS", "S", "M", "L", "XL", "XXL"],
     active: true
   },
-
   {
     id: "nike-ensemble-division-noir",
     brand: "Nike",
     category: "Nike",
-    name: "Ensemble Nike Division noir",
+    name: "Ensemble Nike Division",
     price: 11.13,
     images: [
-      "https://fast-shop.app/_next/image?url=https%3A%2F%2Fi.ibb.co%2F5hzqCm5P%2F05c9d4879eb3.jpg&w=1920&q=75",
-      "https://tonrunning.com/cdn/shop/files/FCF8F5AA-A5D3-47B5-A420-4518C27DAE1E_2048x2048.png?v=1790045779",
-      "https://tonrunning.com/cdn/shop/files/38214FDF-2C59-4BBE-A3CE-3884740D0C8E_2048x2048.png?v=1790045779"
+      "https://fast-shop.app/_next/image?url=https%3A%2F%2Fi.ibb.co%2F5hzqCm5P%2F05c9d4879eb3.jpg&w=1920&q=75"
     ],
-    colors: ["Noir"],
-    sizes: ["XS", "S", "M", "L", "XL", "XXL", "XXXL"],
+    colorImages: {
+      "Noir": "https://tonrunning.com/cdn/shop/files/FCF8F5AA-A5D3-47B5-A420-4518C27DAE1E_2048x2048.png?v=1790045779",
+      "Menthe/bleu": "https://tonrunning.com/cdn/shop/files/CF4771F7-120D-4173-A1CD-130BB07D3885_2048x2048.png?v=1790045807"
+    },
+    colors: ["Noir", "Menthe/bleu"],
+    sizes: ["XS", "S", "M", "L", "XL", "XXL"],
     active: true
   },
-
   {
     id: "nike-ensemble-division-menthe",
     brand: "Nike",
     category: "Nike",
-    name: "Ensemble Nike Division menthe/bleu",
+    name: "Ensemble Nike Division – menthe/bleu",
     price: 12.00,
     images: [
-      "https://fast-shop.app/_next/image?url=https%3A%2F%2Fi.ibb.co%2F5hzqCm5P%2F05c9d4879eb3.jpg&w=1920&q=75",
-      "https://tonrunning.com/cdn/shop/files/CF4771F7-120D-4173-A1CD-130BB07D3885_2048x2048.png?v=1790045807",
-      "https://tonrunning.com/cdn/shop/files/593A4D9B-254F-4F7F-B050-DA47238642BA_2048x2048.png?v=1790045808"
+      "https://fast-shop.app/_next/image?url=https%3A%2F%2Fi.ibb.co%2F5hzqCm5P%2F05c9d4879eb3.jpg&w=1920&q=75"
     ],
     colors: ["Menthe/bleu"],
-    sizes: ["XS", "S", "M", "L", "XL", "XXL", "XXXL"],
-    active: true
+    sizes: ["XS", "S", "M", "L", "XL", "XXL"],
+    active: false
   },
-
   {
     id: "nike-zip-running-division-menthe",
     brand: "Nike",
     category: "Nike",
-    name: "Haut zippé Nike Running Division menthe/bleu",
+    name: "Haut zippé Nike Running Division – menthe/bleu",
     price: 6.42,
     images: [
-      "https://tonrunning.com/cdn/shop/files/CF4771F7-120D-4173-A1CD-130BB07D3885_2048x2048.png?v=1790045807",
-      "https://tonrunning.com/cdn/shop/files/593A4D9B-254F-4F7F-B050-DA47238642BA_2048x2048.png?v=1790045808"
+      "https://tonrunning.com/cdn/shop/files/CF4771F7-120D-4173-A1CD-130BB07D3885_2048x2048.png?v=1790045807"
     ],
     colors: ["Menthe/bleu"],
-    sizes: ["XS", "S", "M", "L", "XL", "XXL", "XXXL"],
-    active: true
+    sizes: ["XS", "S", "M", "L", "XL", "XXL"],
+    active: false
   },
-
   {
     id: "nike-phenom-elite-tokyo",
     brand: "Nike",
@@ -164,10 +141,9 @@ const STARTER_PRODUCTS = [
       "https://i1.t4s.cz/products/dh1483-010/nike-phenom-elite-tokyo-men-s-knit-running-pants-381819-dh1483-011-960.webp"
     ],
     colors: ["Noir"],
-    sizes: ["XS", "S", "M", "L", "XL", "XXL", "XXXL"],
+    sizes: ["XS", "S", "M", "L", "XL", "XXL"],
     active: true
   },
-
   {
     id: "nike-ensemble-running-ete",
     brand: "Nike",
@@ -176,15 +152,12 @@ const STARTER_PRODUCTS = [
     price: null,
     priceToSet: true,
     images: [
-      "https://dropcityparis.com/cdn/shop/files/photopageproduitnikeetebleu.png?v=1782133267",
-      "https://dropcityparis.com/cdn/shop/files/photo_page_produit_nike_ete_rose.png?v=1782133321",
-      "https://dropcityparis.com/cdn/shop/files/photo_page_produit_nike_ete_noir.png?v=1782133367"
+      "https://dropcityparis.com/cdn/shop/files/photopageproduitnikeetebleu.png?v=1782133267"
     ],
     colors: ["Bleu", "Rose", "Noir"],
-    sizes: ["XS", "S", "M", "L", "XL", "XXL", "XXXL"],
+    sizes: ["XS", "S", "M", "L", "XL", "XXL"],
     active: true
   },
-
   {
     id: "nike-veste-bresil-itau",
     brand: "Nike",
@@ -192,38 +165,30 @@ const STARTER_PRODUCTS = [
     name: "Veste Brésil Itaú",
     price: 14.45,
     images: [
-      "https://maillotland.com/cdn/shop/files/WhatsApp_Image_2026-08-29_at_21.54.05.jpg?v=1788034462",
-      "https://maillotland.com/cdn/shop/files/IMG-5587.jpg?v=1789297833",
-      "https://maillotland.com/cdn/shop/files/Veste_Br_sil_Beige.jpg?v=1788034586",
-      "https://maillotland.com/cdn/shop/files/5D7DC9F8-EAEE-41ED-B5F2-ACF023339549.jpg?v=1788030700"
+      "https://maillotland.com/cdn/shop/files/WhatsApp_Image_2026-08-29_at_21.54.05.jpg?v=1788034462"
     ],
     colors: ["Noir", "Rose", "Beige", "Vert"],
-    sizes: ["XS", "S", "M", "L", "XL", "XXL", "XXXL"],
+    sizes: ["XS", "S", "M", "L", "XL", "XXL"],
     active: true
   },
-
-  // ---------------- C.P. COMPANY ----------------
-
   {
     id: "cp-company-pullover",
     brand: "C.P. Company",
     category: "C.P. Company",
-    name: "C.P. Company Pullover",
+    name: "C.P. Company – Pullover",
     price: 6.34,
     images: [
-      "https://www.yoox.com/images/items/14/14493809pk_14_f.jpg?impolicy=crop&width=387&height=490",
-      "https://www.yoox.com/images/items/14/14493809dp_14_f.jpg?impolicy=crop&width=387&height=490"
+      "https://www.yoox.com/images/items/14/14493809pk_14_f.jpg?impolicy=crop&width=387&height=490"
     ],
     colors: ["Noir", "Blanc"],
-    sizes: ["XS", "S", "M", "L", "XL", "XXL", "XXXL"],
+    sizes: ["XS", "S", "M", "L", "XL", "XXL"],
     active: true
   },
-
   {
     id: "cp-company-bonnet-menorinos",
     brand: "C.P. Company",
     category: "C.P. Company",
-    name: "C.P. Company Bonnet en mérinos",
+    name: "C.P. Company – Bonnet en mérinos",
     price: 4.86,
     images: [
       "https://d3vfig6e0r0snz.cloudfront.net/rcYjnYuenaTH5vyDF/images/products/a71a15cceb4196f36208123c79023614.jpg"
@@ -232,86 +197,58 @@ const STARTER_PRODUCTS = [
     sizes: ["Taille unique"],
     active: true
   },
-
-  // ---------------- STONE ISLAND ----------------
-
   {
-    id: "stone-island-article",
+    id: "stone-island-article-a-identifier",
     brand: "Stone Island",
     category: "Stone Island",
-    name: "Stone Island – article noir et blanc",
+    name: "Article Stone Island – nom à préciser",
     price: null,
     priceToSet: true,
     images: [
-      "https://cdn-images.farfetch-contents.com/25/37/28/56/25372856_75614274_1000.jpg?ov=lightgrey",
-      "https://cdn-images.farfetch-contents.com/39/97/85/22/39978522_99261882_1000.jpg?ov=lightgrey"
+      "https://cdn-images.farfetch-contents.com/25/37/28/56/25372856_75614274_1000.jpg?ov=lightgrey"
     ],
     colors: ["Noir", "Blanc"],
-    sizes: ["XS", "S", "M", "L", "XL", "XXL", "XXXL"],
+    sizes: ["XS", "S", "M", "L", "XL", "XXL"],
     active: true
   },
-
   {
     id: "stone-island-cotton-tshirt",
     brand: "Stone Island",
     category: "Stone Island",
-    name: "Stone Island Cotton T-shirt",
+    name: "Stone Island – T-shirt en coton",
     price: null,
     priceToSet: true,
     images: [
-      "https://i.etsystatic.com/54513826/r/il/d0b87b/7533878689/il_1588xN.7533878689_639l.jpg",
-      "https://cdn-images.farfetch-contents.com/25/37/28/56/25372856_75614301_1000.jpg?ov=lightgrey"
+      "https://i.etsystatic.com/54513826/r/il/d0b87b/7533878689/il_1588xN.7533878689_639l.jpg"
     ],
     colors: ["Noir", "Blanc"],
-    sizes: ["XS", "S", "M", "L", "XL", "XXL", "XXXL"],
+    sizes: ["XS", "S", "M", "L", "XL", "XXL"],
     active: true
   },
-
-  // ---------------- UNDER ARMOUR ----------------
-
   {
     id: "under-armour-ua-tech-fille",
     brand: "Under Armour",
     category: "Under Armour",
-    name: "UA Tech pour fille",
+    name: "UA Tech – pour fille",
     price: 1.54,
     images: [],
     colors: ["Noir", "Rose"],
     sizes: ["S", "M", "L", "XL"],
     active: true
   },
-
   {
     id: "under-armour-ua-tech-20-garcon",
     brand: "Under Armour",
     category: "Under Armour",
-    name: "UA Tech 2.0 pour garçon",
+    name: "UA Tech 2.0 – pour garçon",
     price: 3.46,
     images: [
-      "https://underarmour.scene7.com/is/image/Underarmour/PS1363284-100_HF?rp=standard-0pad%7Cpdp&qlt=85&bgc=f0f0f0&wid=800&hei=1000&op_usm=1.75%2C0.3%2C2%2C0",
-      "https://underarmour.scene7.com/is/image/Underarmour/PS1363284-100_HB?rp=standard-0pad%7Cpdp&qlt=85&bgc=f0f0f0&wid=800&hei=1000&op_usm=1.75%2C0.3%2C2%2C0",
-      "https://underarmour.scene7.com/is/image/Underarmour/PS1363284-482_HF?rp=standard-0pad%7Cpdp&qlt=85&bgc=f0f0f0&wid=800&hei=1000&op_usm=1.75%2C0.3%2C2%2C0",
-      "https://underarmour.scene7.com/is/image/Underarmour/PS1363284-482_HB?rp=standard-0pad%7Cpdp&qlt=85&bgc=f0f0f0&wid=800&hei=1000&op_usm=1.75%2C0.3%2C2%2C0",
-      "https://underarmour.scene7.com/is/image/Underarmour/PS1363284-003_HF?rp=standard-0pad%7Cpdp&qlt=85&bgc=f0f0f0&wid=800&hei=1000&op_usm=1.75%2C0.3%2C2%2C0",
-      "https://underarmour.scene7.com/is/image/Underarmour/PS1363284-003_HB?rp=standard-0pad%7Cpdp&qlt=85&bgc=f0f0f0&wid=800&hei=1000&op_usm=1.75%2C0.3%2C2%2C0",
-      "https://underarmour.scene7.com/is/image/Underarmour/PS1363284-808_HB?rp=standard-0pad%7Cpdp&qlt=85&bgc=f0f0f0&wid=800&hei=1000&op_usm=1.75%2C0.3%2C2%2C0",
-      "https://underarmour.scene7.com/is/image/Underarmour/PS1363284-808_HS?rp=standard-0pad%7Cpdp&qlt=85&bgc=f0f0f0&wid=800&hei=1000&op_usm=1.75%2C0.3%2C2%2C0",
-      "https://underarmour.scene7.com/is/image/Underarmour/PS1363284-673_HB?rp=standard-0pad%7Cpdp&qlt=85&bgc=f0f0f0&wid=800&hei=1000&op_usm=1.75%2C0.3%2C2%2C0",
-      "https://underarmour.scene7.com/is/image/Underarmour/PS1363284-673_HS?rp=standard-0pad%7Cpdp&qlt=85&bgc=f0f0f0&wid=800&hei=1000&op_usm=1.75%2C0.3%2C2%2C0",
-      "https://underarmour.scene7.com/is/image/Underarmour/PS1363284-001_HB?rp=standard-0pad%7Cpdp&qlt=85&bgc=f0f0f0&wid=800&hei=1000&op_usm=1.75%2C0.3%2C2%2C0",
-      "https://underarmour.scene7.com/is/image/Underarmour/PS1363284-001_HF?rp=standard-0pad%7Cpdp&qlt=85&bgc=f0f0f0&wid=800&hei=1000&op_usm=1.75%2C0.3%2C2%2C0"
+      "https://underarmour.scene7.com/is/image/Underarmour/PS1363284-100_HF?rp=standard-0pad%7Cpdp&qlt=85&bgc=f0f0f0&wid=800&hei=1000&op_usm=1.75%2C0.3%2C2%2C0"
     ],
-    colors: [
-      "Blanc",
-      "Bleu",
-      "Noir motif orange",
-      "Rose",
-      "Noir sans motif"
-    ],
+    colors: ["Blanc", "Bleu", "Noir motif orange", "Rose", "Noir sans motif"],
     sizes: ["S", "M", "L", "XL"],
     active: true
   },
-
   {
     id: "under-armour-storm-coldgear-shield",
     brand: "Under Armour",
@@ -319,19 +256,13 @@ const STARTER_PRODUCTS = [
     name: "UA Storm ColdGear Infrared Shield 2.0",
     price: 17.99,
     images: [
-      "https://underarmour.scene7.com/is/image/Underarmour/V5-1371587-002_FC?rp=standard-0pad%7Cpdp&qlt=85&bgc=f0f0f0&wid=800&hei=1000&op_usm=1.75%2C0.3%2C2%2C0",
-      "https://underarmour.scene7.com/is/image/Underarmour/V5-1371587-002_BC?rp=standard-0pad%7Cpdp&qlt=85&bgc=f0f0f0&wid=800&hei=1000&op_usm=1.75%2C0.3%2C2%2C0"
+      "https://underarmour.scene7.com/is/image/Underarmour/V5-1371587-002_FC?rp=standard-0pad%7Cpdp&qlt=85&bgc=f0f0f0&wid=800&hei=1000&op_usm=1.75%2C0.3%2C2%2C0"
     ],
     colors: ["Noir"],
     sizes: ["S", "M", "L", "XL", "XXL"],
     active: true
   }
-
 ];
-
-// =========================================================
-// OUTILS
-// =========================================================
 
 const euro = value =>
   new Intl.NumberFormat("fr-FR", {
@@ -347,6 +278,12 @@ const safe = value =>
     '"': "&quot;",
     "'": "&#39;"
   }[char]));
+
+const CART_KEY = "polbuy_cart";
+const ADDRESS_KEY = "polbuy_saved_addresses";
+
+let currentUser = null;
+let activeCategory = "all";
 
 function getCart() {
   try {
@@ -375,82 +312,201 @@ function cartShipping() {
   return cartSubtotal() >= 24.99 ? 0 : 3.99;
 }
 
-// =========================================================
-// AFFICHAGE DES PRODUITS
-// =========================================================
-
 function productCard(product) {
-  const image = product.images?.[0];
-
-  const colorOptions = (product.colors || [])
-    .map(color =>
-      `<option value="${safe(color)}">${safe(color)}</option>`
-    ).join("");
-
-  const sizeOptions = (product.sizes || ["Taille unique"])
-    .map(size =>
-      `<option value="${safe(size)}">${safe(size)}</option>`
-    ).join("");
+  const image = product.images?.[0] ||
+    Object.values(product.colorImages || {})[0];
 
   return `
     <article class="product-card" data-product-id="${safe(product.id)}">
-
-      <div class="product-image-wrap">
-        ${
-          image
-            ? `<img class="product-image"
-                 src="${safe(image)}"
-                 alt="${safe(product.name)}"
-                 loading="lazy"
-                 onerror="this.style.display='none'">`
-            : `<div class="product-image-placeholder">POL BUY</div>`
-        }
-      </div>
-
+      <button class="product-photo-button"
+        type="button"
+        data-open-product="${safe(product.id)}"
+        aria-label="Voir ${safe(product.name)}">
+        ${image
+          ? `<img class="product-image" src="${safe(image)}"
+               alt="${safe(product.name)}" loading="lazy">`
+          : `<span class="product-image-placeholder">POL BUY</span>`}
+      </button>
       <div class="product-info">
         <p class="product-brand">${safe(product.brand)}</p>
         <h3>${safe(product.name)}</h3>
-
         <p class="product-price">
           ${product.price == null ? "Prix à confirmer" : euro(product.price)}
         </p>
-
-        ${
-          product.images?.length > 1
-            ? `<div class="product-gallery">
-                ${product.images.slice(1).map(url =>
-                  `<img src="${safe(url)}"
-                        alt="${safe(product.name)}"
-                        loading="lazy"
-                        onerror="this.style.display='none'">`
-                ).join("")}
-              </div>`
-            : ""
-        }
-
-        <label>
-          Couleur
-          <select class="product-color">
-            ${colorOptions || `<option>Non précisée</option>`}
-          </select>
-        </label>
-
-        <label>
-          Taille
-          <select class="product-size">
-            ${sizeOptions}
-          </select>
-        </label>
-
-        <button class="add-to-cart"
-                type="button"
-                data-add-product="${safe(product.id)}"
-                ${product.price == null ? "disabled" : ""}>
-          ${product.price == null ? "Prix à confirmer" : "Ajouter au panier"}
+        <button class="add-to-cart" type="button"
+          data-open-product="${safe(product.id)}">
+          Voir le produit
         </button>
       </div>
     </article>
   `;
+}
+
+function ensureShopStyles() {
+  if (document.querySelector("#polbuy-shop-style")) return;
+
+  const style = document.createElement("style");
+  style.id = "polbuy-shop-style";
+
+  style.textContent = `
+    .product-photo-button {
+      display:block;width:100%;padding:0;border:0;
+      background:#f4f4f4;cursor:pointer;aspect-ratio:4/5;
+      overflow:hidden
+    }
+    .product-photo-button img {
+      width:100%;height:100%;object-fit:cover
+    }
+    .product-image-placeholder {
+      display:grid;place-items:center;height:100%;font-weight:bold
+    }
+    .product-card .product-info {padding:12px}
+    .polbuy-overlay {
+      position:fixed;inset:0;background:#0009;z-index:100000;
+      display:none;align-items:center;justify-content:center;padding:16px
+    }
+    .polbuy-overlay.open {display:flex}
+    .polbuy-dialog {
+      background:#fff;color:#111;width:min(560px,100%);
+      max-height:92vh;overflow:auto;padding:22px;border-radius:12px;
+      position:relative
+    }
+    .polbuy-dialog img {
+      width:100%;max-height:360px;object-fit:contain;background:#f5f5f5
+    }
+    .polbuy-dialog label {
+      display:grid;gap:6px;margin:12px 0
+    }
+    .polbuy-dialog select,.polbuy-dialog input {
+      padding:11px;border:1px solid #bbb;border-radius:6px;
+      width:100%;box-sizing:border-box
+    }
+    .polbuy-dialog button {
+      padding:12px 16px;border:0;background:#111;
+      color:white;border-radius:6px;cursor:pointer
+    }
+    .polbuy-dialog .polbuy-close {
+      float:right;background:#eee;color:#111
+    }
+    .polbuy-cart-row {
+      display:grid;grid-template-columns:64px 1fr auto;
+      gap:10px;align-items:center;padding:10px 0;
+      border-bottom:1px solid #ddd
+    }
+    .polbuy-cart-row img {
+      width:64px;height:76px;object-fit:cover
+    }
+    .polbuy-admin-order {
+      border:1px solid #ddd;padding:12px;margin:10px 0;
+      border-radius:8px
+    }
+  `;
+
+  document.head.appendChild(style);
+}
+
+function ensureOverlay(id, title) {
+  let node = document.getElementById(id);
+  if (node) return node;
+
+  node = document.createElement("div");
+  node.id = id;
+  node.className = "polbuy-overlay";
+
+  node.innerHTML = `
+    <section class="polbuy-dialog" role="dialog" aria-modal="true">
+      <button class="polbuy-close" type="button"
+        data-overlay-close="${id}">Fermer ✕</button>
+      <h2>${title}</h2>
+      <div class="polbuy-dialog-content"></div>
+    </section>
+  `;
+
+  document.body.appendChild(node);
+  return node;
+}
+
+function openProduct(productId) {
+  const product = STARTER_PRODUCTS.find(p => p.id === productId);
+  if (!product) return;
+
+  ensureShopStyles();
+
+  const modal = ensureOverlay(
+    "polbuy-product-modal",
+    "Détails du produit"
+  );
+
+  const host = modal.querySelector(".polbuy-dialog-content");
+  const colors = product.colors || ["Non précisée"];
+  const sizes = product.sizes || ["Taille unique"];
+  const firstColor = colors[0];
+
+  const photo =
+    product.colorImages?.[firstColor] ||
+    product.images?.[0] ||
+    "";
+
+  host.innerHTML = `
+    <img id="polbuy-detail-image"
+      src="${safe(photo)}" alt="${safe(product.name)}">
+
+    <h3>${safe(product.brand)} — ${safe(product.name)}</h3>
+
+    <p><strong>
+      ${product.price == null ? "Prix à confirmer" : euro(product.price)}
+    </strong></p>
+
+    <label>Couleur
+      <select id="polbuy-detail-color">
+        ${colors.map(color =>
+          `<option value="${safe(color)}">${safe(color)}</option>`
+        ).join("")}
+      </select>
+    </label>
+
+    <label>Taille
+      <select id="polbuy-detail-size">
+        ${sizes.map(size =>
+          `<option value="${safe(size)}">${safe(size)}</option>`
+        ).join("")}
+      </select>
+    </label>
+
+    <button type="button" id="polbuy-detail-add"
+      ${product.price == null ? "disabled" : ""}>
+      ${product.price == null ? "Prix à confirmer" : "Ajouter au panier"}
+    </button>
+  `;
+
+  modal.classList.add("open");
+
+  host.querySelector("#polbuy-detail-color").addEventListener(
+    "change",
+    event => {
+      const src =
+        product.colorImages?.[event.target.value] ||
+        product.images?.[0] ||
+        "";
+
+      const image = host.querySelector("#polbuy-detail-image");
+      if (src) image.src = src;
+    }
+  );
+
+  host.querySelector("#polbuy-detail-add").addEventListener(
+    "click",
+    () => {
+      addProductToCart(
+        product,
+        host.querySelector("#polbuy-detail-color").value,
+        host.querySelector("#polbuy-detail-size").value
+      );
+
+      modal.classList.remove("open");
+      openCart();
+    }
+  );
 }
 
 function getVisibleProducts() {
@@ -465,72 +521,66 @@ function renderProducts() {
     "#product-grid, #productGrid, [data-product-grid]"
   );
 
-  if (!grid) {
-    console.error("Élément #product-grid introuvable dans index.html");
-    return;
-  }
+  if (!grid) return;
 
   grid.innerHTML = getVisibleProducts().map(productCard).join("");
 }
 
 async function loadProducts() {
-  // Affiche immédiatement le catalogue intégré.
   renderProducts();
 
-  // Essaie ensuite de récupérer les produits Firestore.
   try {
     const snapshot = await getDocs(collection(db, "products"));
 
     if (!snapshot.empty) {
-      console.log("Produits Firestore chargés :", snapshot.size);
+      const remote = snapshot.docs.map(d => ({
+        id: d.id,
+        ...d.data()
+      }));
+
+      const byId = new Map(
+        STARTER_PRODUCTS.map(p => [p.id, p])
+      );
+
+      remote.forEach(product => {
+        byId.set(product.id, {
+          ...byId.get(product.id),
+          ...product
+        });
+      });
+
+      window.POL_BUY.products = [...byId.values()];
+      renderProducts();
     }
   } catch (error) {
     console.warn(
-      "Firestore indisponible : le catalogue intégré reste affiché.",
+      "Firestore indisponible : affichage du catalogue intégré.",
       error
     );
   }
 }
 
-// Import manuel du catalogue dans Firestore.
 async function importStarterCatalog() {
   try {
     for (const product of STARTER_PRODUCTS) {
       const { id, ...data } = product;
 
-      await setDoc(doc(db, "products", id), {
-        ...data,
-        updatedAt: serverTimestamp()
-      }, { merge: true });
+      await setDoc(
+        doc(db, "products", id),
+        { ...data, updatedAt: serverTimestamp() },
+        { merge: true }
+      );
     }
 
-    alert("Catalogue POL BUY importé dans Firestore.");
+    alert("Catalogue importé dans Firestore.");
   } catch (error) {
     console.error(error);
-    alert("Import impossible. Vérifie les règles Firestore.");
+    alert("Import impossible : vérifie les règles Firestore.");
   }
 }
 
-// =========================================================
-// PANIER
-// =========================================================
-
-function addToCartFromCard(button) {
-  const card = button.closest("[data-product-id]");
-
-  if (!card) return;
-
-  const product = STARTER_PRODUCTS.find(
-    item => item.id === card.dataset.productId
-  );
-
+function addProductToCart(product, color, size) {
   if (!product || product.price == null) return;
-
-  const color =
-    card.querySelector(".product-color")?.value || "Non précisée";
-
-  const size =
-    card.querySelector(".product-size")?.value || "Taille unique";
 
   const cart = getCart();
 
@@ -548,7 +598,10 @@ function addToCartFromCard(button) {
       name: product.name,
       brand: product.brand,
       price: product.price,
-      image: product.images?.[0] || "",
+      image:
+        product.colorImages?.[color] ||
+        product.images?.[0] ||
+        "",
       color,
       size,
       quantity: 1
@@ -556,14 +609,15 @@ function addToCartFromCard(button) {
   }
 
   saveCart(cart);
+}
 
-  button.textContent = "Ajouté ✓";
+function addToCartFromCard(button) {
+  const card = button.closest("[data-product-id]");
+  const product = STARTER_PRODUCTS.find(
+    p => p.id === card?.dataset.productId
+  );
 
-  setTimeout(() => {
-    if (button.isConnected) {
-      button.textContent = "Ajouter au panier";
-    }
-  }, 1200);
+  if (product) openProduct(product.id);
 }
 
 function renderCart() {
@@ -573,52 +627,94 @@ function renderCart() {
     "#cart-lines, #cartItems, [data-cart-lines]"
   );
 
-  if (lines) {
-    lines.innerHTML = cart.length
-      ? cart.map((item, index) => `
-          <div class="cart-item">
-            <span>
-              ${safe(item.name)} —
-              ${safe(item.color)} —
-              ${safe(item.size)} × ${item.quantity}
-            </span>
+  const html = cart.length
+    ? cart.map((item, index) => `
+      <div class="polbuy-cart-row">
+        ${item.image
+          ? `<img src="${safe(item.image)}" alt="">`
+          : ""}
+        <div>
+          <strong>${safe(item.name)}</strong>
+          <p>
+            ${safe(item.color)} · ${safe(item.size)}
+            · Qté ${item.quantity}
+          </p>
+          <strong>${euro(item.price * item.quantity)}</strong>
+        </div>
+        <div>
+          <button type="button" data-qty-minus="${index}">−</button>
+          <button type="button" data-qty-plus="${index}">+</button>
+          <button type="button" data-remove-cart="${index}">
+            Supprimer
+          </button>
+        </div>
+      </div>
+    `).join("")
+    : "<p>Ton panier est vide.</p>";
 
-            <strong>${euro(item.price * item.quantity)}</strong>
+  if (lines) lines.innerHTML = html;
 
-            <button type="button" data-remove-cart="${index}">
-              Supprimer
-            </button>
-          </div>
-        `).join("")
-      : "<p>Ton panier est vide.</p>";
-  }
+  const totalText =
+    `Sous-total : ${euro(cartSubtotal())} · ` +
+    `Livraison : ${cartShipping() === 0
+      ? "offerte"
+      : euro(cartShipping())} · ` +
+    `Total : ${euro(cartSubtotal() + cartShipping())}`;
 
   const totalNode = document.querySelector(
     "#cart-total, [data-cart-total]"
   );
 
-  if (totalNode) {
-    totalNode.textContent =
-      `Sous-total : ${euro(cartSubtotal())} · ` +
-      `Livraison : ${cartShipping() === 0 ? "offerte" : euro(cartShipping())} · ` +
-      `Total : ${euro(cartSubtotal() + cartShipping())}`;
-  }
+  if (totalNode) totalNode.textContent = totalText;
 
   document.querySelectorAll("[data-cart-count]").forEach(node => {
     node.textContent = cart.reduce(
-      (number, item) => number + Number(item.quantity || 1),
+      (sum, item) => sum + Number(item.quantity || 1),
       0
     );
   });
+
+  const modal = document.getElementById("polbuy-cart-modal");
+
+  if (modal?.classList.contains("open")) {
+    modal.querySelector(".polbuy-dialog-content").innerHTML = `
+      ${html}
+      <p><strong>${totalText}</strong></p>
+
+      <button type="button" id="polbuy-open-address">
+        Choisir / ajouter une adresse
+      </button>
+
+      <p id="polbuy-current-address">
+        Adresse enregistrée dans ce navigateur : à sélectionner
+      </p>
+
+      <p>Après validation de la commande, effectue le paiement via PayPal :</p>
+
+      <a href="https://paypal.me/BUYPOL"
+        target="_blank" rel="noopener">
+        Payer avec PayPal
+      </a>
+
+      <button type="button" id="polbuy-checkout">
+        Valider ma commande
+      </button>
+    `;
+  }
 }
 
-// =========================================================
-// COMPTE CLIENT — FENÊTRE DE CONNEXION AUTOMATIQUE
-// =========================================================
+function openCart() {
+  ensureShopStyles();
 
+  const modal = ensureOverlay("polbuy-cart-modal", "Mon panier");
+  modal.classList.add("open");
+
+  renderCart();
+}
+// COMPTE CLIENT — fenêtre de connexion / inscription
 function ensureAccountModal() {
   let modal = document.querySelector(
-    "#account-modal, [data-account-modal], #polbuy-account-modal"
+    "#account-modal, [data-account-modal]"
   );
 
   if (modal) return modal;
@@ -630,19 +726,16 @@ function ensureAccountModal() {
     <div class="polbuy-modal-backdrop" data-close-account></div>
 
     <section class="polbuy-modal-panel"
-             role="dialog"
-             aria-modal="true">
+      role="dialog" aria-modal="true"
+      aria-labelledby="polbuy-account-title">
 
       <button type="button"
-              class="polbuy-modal-close"
-              data-close-account>
-        ×
-      </button>
+        class="polbuy-modal-close"
+        data-close-account aria-label="Fermer">×</button>
 
-      <h2>Mon compte POL BUY</h2>
+      <h2 id="polbuy-account-title">Mon compte POL BUY</h2>
 
       <div id="polbuy-account-content"></div>
-
     </section>
   `;
 
@@ -654,88 +747,43 @@ function ensureAccountModal() {
 
     style.textContent = `
       #polbuy-account-modal {
-        position: fixed;
-        inset: 0;
-        z-index: 99999;
-        display: none;
-        align-items: center;
-        justify-content: center;
-        padding: 18px;
-        font-family: Arial, sans-serif;
+        position:fixed;inset:0;z-index:99999;
+        display:none;align-items:center;justify-content:center;
+        padding:18px;font-family:Arial,sans-serif
       }
-
-      #polbuy-account-modal.is-open {
-        display: flex;
-      }
-
+      #polbuy-account-modal.is-open {display:flex}
       .polbuy-modal-backdrop {
-        position: absolute;
-        inset: 0;
-        background: #0009;
+        position:absolute;inset:0;background:#0009
       }
-
       .polbuy-modal-panel {
-        position: relative;
-        background: white;
-        color: #111;
-        width: min(440px, 100%);
-        max-height: 90vh;
-        overflow: auto;
-        padding: 28px;
-        border-radius: 12px;
-        box-shadow: 0 12px 50px #0004;
+        position:relative;background:#fff;color:#111;
+        width:min(440px,100%);max-height:90vh;
+        overflow:auto;padding:28px;border-radius:12px;
+        box-shadow:0 12px 50px #0004
       }
-
+      .polbuy-modal-panel h2 {margin:0 32px 20px 0}
       .polbuy-modal-close {
-        position: absolute;
-        right: 14px;
-        top: 10px;
-        border: 0;
-        background: none;
-        font-size: 30px;
-        cursor: pointer;
+        position:absolute;right:14px;top:10px;
+        border:0;background:none;font-size:30px;cursor:pointer
       }
-
-      .polbuy-account-form {
-        display: grid;
-        gap: 12px;
-      }
-
+      .polbuy-account-form {display:grid;gap:12px}
       .polbuy-account-form input {
-        box-sizing: border-box;
-        width: 100%;
-        padding: 12px;
-        border: 1px solid #bbb;
-        border-radius: 6px;
+        box-sizing:border-box;width:100%;padding:12px;
+        border:1px solid #bbb;border-radius:6px
       }
-
-      .polbuy-account-form button {
-        padding: 12px;
-        background: #111;
-        color: white;
-        border: 0;
-        border-radius: 6px;
-        cursor: pointer;
+      .polbuy-account-form button,.polbuy-account-action {
+        padding:12px;background:#111;color:#fff;
+        border:0;border-radius:6px;cursor:pointer
       }
-
+      .polbuy-account-form button:disabled {opacity:.5}
       .polbuy-account-switch {
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
-        margin-top: 12px;
+        display:flex;gap:8px;flex-wrap:wrap;margin-top:12px
       }
-
       .polbuy-account-switch button {
-        padding: 10px;
-        background: #eee;
-        color: #111;
-        border: 0;
-        cursor: pointer;
+        background:#eee;color:#111
       }
-
       .polbuy-account-message {
-        font-size: 14px;
-        color: #b00020;
+        font-size:14px;min-height:18px;color:#a00
       }
     `;
 
@@ -745,17 +793,17 @@ function ensureAccountModal() {
   return modal;
 }
 
-function showAccountMessage(message) {
+function showAccountMessage(message, isError = true) {
   const node = document.querySelector("#polbuy-account-message");
 
   if (node) {
     node.textContent = message;
+    node.style.color = isError ? "#b00020" : "#087443";
   }
 }
 
 function renderAccountContent(mode = "login") {
   const host = document.querySelector("#polbuy-account-content");
-
   if (!host) return;
 
   if (currentUser) {
@@ -772,7 +820,9 @@ function renderAccountContent(mode = "login") {
         </button>
       </div>
 
-      <p id="polbuy-account-message"></p>
+      <p id="polbuy-account-message"
+        class="polbuy-account-message"></p>
+
       <div id="polbuy-orders-list"></div>
     `;
 
@@ -786,26 +836,20 @@ function renderAccountContent(mode = "login") {
 
       <h3>${register ? "Créer un compte" : "Connexion"}</h3>
 
-      ${
-        register
-          ? `<input name="name"
-                    type="text"
-                    placeholder="Ton prénom et nom"
-                    required>`
-          : ""
-      }
+      ${register
+        ? `<input name="name" type="text"
+             placeholder="Ton prénom et nom"
+             autocomplete="name" required>`
+        : ""}
 
-      <input name="email"
-             type="email"
-             placeholder="Adresse e-mail"
-             autocomplete="email"
-             required>
+      <input name="email" type="email"
+        placeholder="Adresse e-mail"
+        autocomplete="email" required>
 
-      <input name="password"
-             type="password"
-             placeholder="Mot de passe (6 caractères minimum)"
-             minlength="6"
-             required>
+      <input name="password" type="password"
+        placeholder="Mot de passe (6 caractères minimum)"
+        autocomplete="${register ? "new-password" : "current-password"}"
+        minlength="6" required>
 
       <button type="submit">
         ${register ? "Créer mon compte" : "Me connecter"}
@@ -814,7 +858,6 @@ function renderAccountContent(mode = "login") {
       <button type="button" id="polbuy-google-login">
         Continuer avec Google
       </button>
-
     </form>
 
     <div class="polbuy-account-switch">
@@ -828,7 +871,7 @@ function renderAccountContent(mode = "login") {
     </div>
 
     <p id="polbuy-account-message"
-       class="polbuy-account-message"></p>
+      class="polbuy-account-message"></p>
   `;
 }
 
@@ -842,17 +885,18 @@ function openAccount(mode = "login") {
 }
 
 function closeAccount() {
-  const modal = document.querySelector("#polbuy-account-modal");
+  const modal = document.querySelector(
+    "#polbuy-account-modal, #account-modal, [data-account-modal]"
+  );
 
   if (modal) {
     modal.classList.remove("is-open");
-    modal.style.display = "none";
+
+    if (modal.id === "polbuy-account-modal") {
+      modal.style.display = "none";
+    }
   }
 }
-
-// =========================================================
-// AUTHENTIFICATION FIREBASE
-// =========================================================
 
 async function registerAccount(email, password, name) {
   const credential = await createUserWithEmailAndPassword(
@@ -871,31 +915,22 @@ async function registerAccount(email, password, name) {
 }
 
 async function loginAccount(email, password) {
-  const credential = await signInWithEmailAndPassword(
-    auth,
-    email,
-    password
-  );
-
-  return credential.user;
+  return (
+    await signInWithEmailAndPassword(auth, email, password)
+  ).user;
 }
 
 async function loginWithGoogle() {
-  const provider = new GoogleAuthProvider();
-
-  const credential = await signInWithPopup(auth, provider);
-
-  return credential.user;
+  return (
+    await signInWithPopup(auth, new GoogleAuthProvider())
+  ).user;
 }
 
 async function logoutAccount() {
   await signOut(auth);
 }
 
-// =========================================================
-// COMMANDES
-// =========================================================
-
+// COMMANDES ET ESPACE CLIENT
 async function createOrder(details = {}) {
   if (!auth.currentUser) {
     openAccount("login");
@@ -918,7 +953,10 @@ async function createOrder(details = {}) {
   const orderData = {
     userId: auth.currentUser.uid,
     customerEmail: auth.currentUser.email,
-    customerName: details.name || auth.currentUser.displayName || "",
+    customerName:
+      details.name ||
+      auth.currentUser.displayName ||
+      "",
     address: details.address || "",
     items: cart,
     subtotal,
@@ -929,7 +967,7 @@ async function createOrder(details = {}) {
     createdAt: serverTimestamp()
   };
 
-  const orderRef = await addDoc(
+  const ref = await addDoc(
     collection(db, "orders"),
     orderData
   );
@@ -941,7 +979,7 @@ async function createOrder(details = {}) {
         EMAILJS_NEW_ORDER_TEMPLATE_ID,
         {
           to_email: OWNER_EMAIL,
-          order_id: orderRef.id,
+          order_id: ref.id,
           customer_name: orderData.customerName,
           customer_email: orderData.customerEmail,
           items: cart.map(item =>
@@ -961,7 +999,7 @@ async function createOrder(details = {}) {
 
   saveCart([]);
 
-  return orderRef.id;
+  return ref.id;
 }
 
 async function getMyOrders() {
@@ -974,15 +1012,14 @@ async function getMyOrders() {
     )
   );
 
-  return snapshot.docs.map(item => ({
-    id: item.id,
-    ...item.data()
+  return snapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data()
   }));
 }
 
 async function showMyOrders() {
   const host = document.querySelector("#polbuy-orders-list");
-
   if (!host) return;
 
   host.textContent = "Chargement…";
@@ -992,13 +1029,16 @@ async function showMyOrders() {
 
     host.innerHTML = orders.length
       ? orders.map(order => `
-          <div class="cart-item">
-            <strong>Commande ${safe(order.id)}</strong>
-            <p>État : ${safe(order.status || "En attente")}</p>
-            <p>Total : ${euro(Number(order.total || 0))}</p>
-            <p>Suivi : ${safe(order.trackingNumber || "Pas encore disponible")}</p>
-          </div>
-        `).join("")
+        <div class="cart-item">
+          <strong>Commande ${safe(order.id)}</strong>
+          <p>État : ${safe(order.status || "En attente")}</p>
+          <p>Total : ${euro(Number(order.total || 0))}</p>
+          <p>
+            Suivi :
+            ${safe(order.trackingNumber || "Pas encore disponible")}
+          </p>
+        </div>
+      `).join("")
       : "<p>Aucune commande pour le moment.</p>";
 
   } catch (error) {
@@ -1009,52 +1049,61 @@ async function showMyOrders() {
   }
 }
 
-// =========================================================
-// ADMINISTRATION
-// =========================================================
-
-function requireAdmin() {
+// ADMINISTRATEUR : custom claim Firebase admin=true obligatoire.
+async function requireAdmin() {
   if (!auth.currentUser) {
     throw new Error("Connexion nécessaire.");
   }
 
-  if (auth.currentUser.email !== OWNER_EMAIL) {
-    throw new Error("Réservé à l'administrateur.");
+  const token = await auth.currentUser.getIdTokenResult(true);
+
+  if (token.claims.admin !== true) {
+    throw new Error(
+      "Droits administrateur Firebase requis (admin=true)."
+    );
   }
 }
 
 async function getAllOrders() {
-  requireAdmin();
+  await requireAdmin();
 
-  const snapshot = await getDocs(collection(db, "orders"));
+  const snapshot = await getDocs(
+    collection(db, "orders")
+  );
 
-  return snapshot.docs.map(item => ({
-    id: item.id,
-    ...item.data()
+  return snapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data()
   }));
 }
 
 async function verifyPayment(orderId) {
-  requireAdmin();
+  await requireAdmin();
 
-  await updateDoc(doc(db, "orders", orderId), {
-    paymentVerified: true,
-    status: "paid",
-    paymentVerifiedAt: serverTimestamp()
-  });
+  await updateDoc(
+    doc(db, "orders", orderId),
+    {
+      paymentVerified: true,
+      status: "paid",
+      paymentVerifiedAt: serverTimestamp()
+    }
+  );
 }
 
 async function cancelOrder(orderId) {
-  requireAdmin();
+  await requireAdmin();
 
-  await updateDoc(doc(db, "orders", orderId), {
-    status: "cancelled",
-    cancelledAt: serverTimestamp()
-  });
+  await updateDoc(
+    doc(db, "orders", orderId),
+    {
+      status: "cancelled",
+      cancelledAt: serverTimestamp()
+    }
+  );
 }
 
 async function updateTracking(orderId, data) {
-  requireAdmin();
+  await requireAdmin();
 
   const update = {
     carrier: data.carrier || "",
@@ -1065,84 +1114,471 @@ async function updateTracking(orderId, data) {
     status: "shipped"
   };
 
-  await updateDoc(doc(db, "orders", orderId), update);
-}
+  await updateDoc(
+    doc(db, "orders", orderId),
+    update
+  );
 
-// =========================================================
-// DEMANDE D'UN PRODUIT
-// =========================================================
+  const orderSnapshot = await getDocs(
+    query(
+      collection(db, "orders"),
+      where("__name__", "==", orderId)
+    )
+  );
+
+  const order = orderSnapshot.docs[0]?.data();
+
+  if (order && window.emailjs?.send) {
+    try {
+      await window.emailjs.send(
+        EMAILJS_SERVICE_ID,
+        EMAILJS_TRACKING_TEMPLATE_ID,
+        {
+          to_email: order.customerEmail,
+          customer_name: order.customerName || "",
+          order_id: orderId,
+          status: "Expédiée",
+          carrier: update.carrier,
+          tracking_number: update.trackingNumber,
+          tracking_status: update.trackingStatus,
+          tracking_location: update.trackingLocation,
+          estimated_delivery: update.estimatedDelivery
+        },
+        EMAILJS_PUBLIC_KEY
+      );
+    } catch (error) {
+      console.error("Email de suivi non envoyé", error);
+    }
+  }
+}
 
 async function requestProduct(data) {
-  return addDoc(collection(db, "productRequests"), {
-    userId: auth.currentUser?.uid || null,
-    email: data.email || auth.currentUser?.email || "",
-    brand: data.brand || "",
-    name: data.name || "",
-    description: data.description || "",
-    link: data.link || "",
-    createdAt: serverTimestamp()
-  });
+  return addDoc(
+    collection(db, "productRequests"),
+    {
+      userId: auth.currentUser?.uid || null,
+      email: data.email || auth.currentUser?.email || "",
+      brand: data.brand || "",
+      name: data.name || "",
+      description: data.description || "",
+      link: data.link || "",
+      createdAt: serverTimestamp()
+    }
+  );
+}
+// GESTION DES ADRESSES
+// Elles sont enregistrées dans le navigateur de l'utilisateur.
+function getAddresses() {
+  try {
+    return JSON.parse(
+      localStorage.getItem(ADDRESS_KEY) || "[]"
+    );
+  } catch {
+    return [];
+  }
 }
 
-// =========================================================
-// ÉVÉNEMENTS DES BOUTONS
-// =========================================================
+function saveAddresses(addresses) {
+  localStorage.setItem(
+    ADDRESS_KEY,
+    JSON.stringify(addresses)
+  );
+}
 
+function openAddressBook() {
+  ensureShopStyles();
+
+  const modal = ensureOverlay(
+    "polbuy-address-modal",
+    "Mes adresses"
+  );
+
+  const host = modal.querySelector(
+    ".polbuy-dialog-content"
+  );
+
+  const addresses = getAddresses();
+
+  host.innerHTML = `
+    <label>Choisir une adresse
+      <select id="polbuy-address-select">
+        <option value="">Sélectionner…</option>
+
+        ${addresses.map((address, index) => `
+          <option value="${index}">
+            ${safe(address.label || address.name + " — " + address.city)}
+          </option>
+        `).join("")}
+      </select>
+    </label>
+
+    <div id="polbuy-address-selected"></div>
+
+    <h3>Ajouter une adresse</h3>
+
+    <form id="polbuy-address-form">
+
+      <label>Nom de l'adresse
+        <input name="label"
+          placeholder="Maison, travail…"
+          required>
+      </label>
+
+      <label>Nom complet
+        <input name="name" required>
+      </label>
+
+      <label>Adresse
+        <input name="street" required>
+      </label>
+
+      <label>Code postal
+        <input name="zip" required>
+      </label>
+
+      <label>Ville
+        <input name="city" required>
+      </label>
+
+      <label>Pays
+        <input name="country" value="France" required>
+      </label>
+
+      <label>Téléphone
+        <input name="phone" type="tel">
+      </label>
+
+      <button type="submit">
+        Ajouter l'adresse
+      </button>
+    </form>
+  `;
+
+  const select = host.querySelector(
+    "#polbuy-address-select"
+  );
+
+  const showSelected = () => {
+    const address = getAddresses()[Number(select.value)];
+
+    host.querySelector(
+      "#polbuy-address-selected"
+    ).textContent = address
+      ? `${address.name}, ${address.street}, ${address.zip} ${address.city}, ${address.country}`
+      : "";
+  };
+
+  select.addEventListener("change", showSelected);
+
+  showSelected();
+
+  modal.classList.add("open");
+}
+
+function getSelectedAddress() {
+  const modal = document.getElementById(
+    "polbuy-address-modal"
+  );
+
+  const index = Number(
+    modal?.querySelector("#polbuy-address-select")?.value
+  );
+
+  return getAddresses()[index] || null;
+}
+
+// DASHBOARD ADMINISTRATEUR
+async function openAdminDashboard() {
+  if (!auth.currentUser) {
+    openAccount("login");
+    throw new Error(
+      "Connecte-toi avec le compte administrateur."
+    );
+  }
+
+  const token = await auth.currentUser.getIdTokenResult(true);
+
+  if (token.claims.admin !== true) {
+    alert(
+      "Accès refusé : le compte doit avoir le droit administrateur admin=true dans Firebase."
+    );
+    return;
+  }
+
+  ensureShopStyles();
+
+  const modal = ensureOverlay(
+    "polbuy-admin-modal",
+    "Dashboard administrateur"
+  );
+
+  const host = modal.querySelector(
+    ".polbuy-dialog-content"
+  );
+
+  modal.classList.add("open");
+  host.textContent = "Chargement des commandes…";
+
+  try {
+    const orders = await getAllOrders();
+
+    host.innerHTML = `
+      <p>${orders.length} commande(s)</p>
+
+      ${orders.map(order => `
+        <article class="polbuy-admin-order">
+
+          <strong>Commande ${safe(order.id)}</strong>
+
+          <p>
+            ${safe(order.customerName)}
+            · ${safe(order.customerEmail)}
+          </p>
+
+          <p>
+            ${euro(Number(order.total || 0))}
+            · ${safe(order.status)}
+          </p>
+
+          <p>
+            Adresse :
+            ${safe(order.address?.street || order.address || "Non renseignée")}
+          </p>
+
+          <button type="button"
+            data-admin-paid="${safe(order.id)}">
+            Confirmer paiement
+          </button>
+
+          <button type="button"
+            data-admin-cancel="${safe(order.id)}">
+            Annuler
+          </button>
+
+          <form data-admin-tracking="${safe(order.id)}">
+
+            <input name="carrier"
+              placeholder="Transporteur (DPD, Colissimo…)"
+              required>
+
+            <input name="trackingNumber"
+              placeholder="Numéro de suivi"
+              required>
+
+            <input name="trackingStatus"
+              placeholder="Statut">
+
+            <input name="trackingLocation"
+              placeholder="Lieu">
+
+            <input name="estimatedDelivery"
+              placeholder="Livraison estimée">
+
+            <button type="submit">
+              Enregistrer le suivi
+            </button>
+          </form>
+
+        </article>
+      `).join("") || "<p>Aucune commande.</p>"}
+    `;
+
+  } catch (error) {
+    host.textContent =
+      "Erreur de chargement : " + error.message;
+  }
+}
+
+// GESTION DES CLICS
 document.addEventListener("click", event => {
 
-  // Ajouter au panier
-  const addButton = event.target.closest("[data-add-product]");
+  const openProductButton = event.target.closest(
+    "[data-open-product]"
+  );
+
+  if (openProductButton) {
+    openProduct(openProductButton.dataset.openProduct);
+    return;
+  }
+
+  const closeOverlay = event.target.closest(
+    "[data-overlay-close]"
+  );
+
+  if (closeOverlay) {
+    document.getElementById(
+      closeOverlay.dataset.overlayClose
+    )?.classList.remove("open");
+
+    return;
+  }
+
+  const addressButton = event.target.closest(
+    "#address-open, [data-address-open]"
+  );
+
+  if (addressButton) {
+    event.preventDefault();
+    openAddressBook();
+    return;
+  }
+
+  const adminButton = event.target.closest(
+    "#admin-open, [data-admin-open]"
+  );
+
+  if (adminButton) {
+    event.preventDefault();
+
+    openAdminDashboard().catch(error => {
+      alert(error.message);
+    });
+
+    return;
+  }
+
+  const minusButton = event.target.closest(
+    "[data-qty-minus]"
+  );
+
+  if (minusButton) {
+    const cart = getCart();
+    const index = Number(minusButton.dataset.qtyMinus);
+
+    if (cart[index]) {
+      cart[index].quantity = Math.max(
+        1,
+        cart[index].quantity - 1
+      );
+
+      saveCart(cart);
+    }
+
+    return;
+  }
+
+  const plusButton = event.target.closest(
+    "[data-qty-plus]"
+  );
+
+  if (plusButton) {
+    const cart = getCart();
+    const index = Number(plusButton.dataset.qtyPlus);
+
+    if (cart[index]) {
+      cart[index].quantity++;
+      saveCart(cart);
+    }
+
+    return;
+  }
+
+  const paidButton = event.target.closest(
+    "[data-admin-paid]"
+  );
+
+  if (paidButton) {
+    verifyPayment(paidButton.dataset.adminPaid)
+      .then(openAdminDashboard)
+      .catch(error => alert(error.message));
+
+    return;
+  }
+
+  const cancelButton = event.target.closest(
+    "[data-admin-cancel]"
+  );
+
+  if (cancelButton) {
+    cancelOrder(cancelButton.dataset.adminCancel)
+      .then(openAdminDashboard)
+      .catch(error => alert(error.message));
+
+    return;
+  }
+
+  const addressOpenButton = event.target.closest(
+    "#polbuy-open-address"
+  );
+
+  if (addressOpenButton) {
+    openAddressBook();
+    return;
+  }
+
+  const checkoutButton = event.target.closest(
+    "#polbuy-checkout"
+  );
+
+  if (checkoutButton) {
+    const address = getSelectedAddress();
+
+    if (!address) {
+      alert(
+        "Choisis ou ajoute une adresse avant de commander."
+      );
+
+      openAddressBook();
+      return;
+    }
+
+    createOrder({ address })
+      .then(orderId => {
+        alert(
+          "Commande créée : " + orderId +
+          ". Paiement à vérifier manuellement."
+        );
+
+        document.getElementById(
+          "polbuy-cart-modal"
+        )?.classList.remove("open");
+      })
+      .catch(error => alert(error.message));
+
+    return;
+  }
+
+  const addButton = event.target.closest(
+    "[data-add-product]"
+  );
 
   if (addButton) {
     addToCartFromCard(addButton);
   }
 
-  // Supprimer du panier
-  const removeButton = event.target.closest("[data-remove-cart]");
+  const removeButton = event.target.closest(
+    "[data-remove-cart]"
+  );
 
   if (removeButton) {
     const cart = getCart();
 
-    cart.splice(Number(removeButton.dataset.removeCart), 1);
+    cart.splice(
+      Number(removeButton.dataset.removeCart),
+      1
+    );
 
     saveCart(cart);
   }
 
-  // BOUTON COMPTE : plusieurs anciens identifiants acceptés
-  if (
-    event.target.closest(
-      "#account-open, #accountBtn, #account-button, [data-account-open]"
-    )
-  ) {
+  if (event.target.closest(
+    "#account-open, #accountBtn, #account-button, [data-account-open]"
+  )) {
     event.preventDefault();
     openAccount("login");
   }
 
-  // BOUTON PANIER
-  if (
-    event.target.closest(
-      "#cart-open, #cartBtn, [data-cart-open]"
-    )
-  ) {
+  if (event.target.closest(
+    "#cart-open, #cartBtn, [data-cart-open]"
+  )) {
     event.preventDefault();
-    renderCart();
-
-    const panel = document.querySelector(
-      "#cart-modal, #cart-panel, [data-cart-modal]"
-    );
-
-    if (panel) {
-      panel.hidden = false;
-      panel.classList.add("is-open");
-    }
+    openCart();
   }
 
-  // Fermer compte
   if (event.target.closest("[data-close-account]")) {
     closeAccount();
   }
 
-  // Passer de connexion à inscription
   if (event.target.closest("#polbuy-show-login")) {
     renderAccountContent("login");
   }
@@ -1151,50 +1587,94 @@ document.addEventListener("click", event => {
     renderAccountContent("register");
   }
 
-  // Connexion Google
   if (event.target.closest("#polbuy-google-login")) {
     loginWithGoogle()
       .then(closeAccount)
       .catch(error => showAccountMessage(error.message));
   }
 
-  // Déconnexion
   if (event.target.closest("#polbuy-logout")) {
     logoutAccount()
       .then(() => renderAccountContent())
       .catch(error => showAccountMessage(error.message));
   }
 
-  // Commandes client
   if (event.target.closest("#polbuy-my-orders")) {
     showMyOrders();
   }
 
-  // Import catalogue
-  if (
-    event.target.closest(
-      "#import-products-btn, [data-import-products]"
-    )
-  ) {
+  if (event.target.closest(
+    "#import-products-btn, [data-import-products]"
+  )) {
     importStarterCatalog();
   }
 });
 
-// Formulaire connexion / inscription
+// FORMULAIRES
 document.addEventListener("submit", async event => {
-  if (event.target.id !== "polbuy-auth-form") return;
+
+  // Ajouter une adresse
+  if (event.target.id === "polbuy-address-form") {
+    event.preventDefault();
+
+    const data = Object.fromEntries(
+      new FormData(event.target)
+    );
+
+    const addresses = getAddresses();
+
+    addresses.push(data);
+
+    saveAddresses(addresses);
+
+    openAddressBook();
+
+    return;
+  }
+
+  // Enregistrer le suivi d'une commande
+  if (event.target.matches("[data-admin-tracking]")) {
+    event.preventDefault();
+
+    const form = event.target;
+
+    const data = Object.fromEntries(
+      new FormData(form)
+    );
+
+    updateTracking(
+      form.dataset.adminTracking,
+      data
+    )
+      .then(openAdminDashboard)
+      .catch(error => alert(error.message));
+
+    return;
+  }
+
+  // Connexion / inscription
+  if (event.target.id !== "polbuy-auth-form") {
+    return;
+  }
 
   event.preventDefault();
 
   const form = event.target;
   const data = new FormData(form);
 
-  const email = String(data.get("email") || "").trim();
-  const password = String(data.get("password") || "");
+  const email = String(
+    data.get("email") || ""
+  ).trim();
 
-  const submitButton = form.querySelector('button[type="submit"]');
+  const password = String(
+    data.get("password") || ""
+  );
 
-  if (submitButton) submitButton.disabled = true;
+  const submit = form.querySelector(
+    'button[type="submit"]'
+  );
+
+  if (submit) submit.disabled = true;
 
   try {
     if (form.querySelector('[name="name"]')) {
@@ -1210,13 +1690,21 @@ document.addEventListener("submit", async event => {
     closeAccount();
 
   } catch (error) {
-
     const messages = {
-      "auth/invalid-credential": "E-mail ou mot de passe incorrect.",
-      "auth/email-already-in-use": "Cette adresse possède déjà un compte.",
-      "auth/weak-password": "Le mot de passe doit contenir au moins 6 caractères.",
-      "auth/invalid-email": "Adresse e-mail invalide.",
-      "auth/popup-closed-by-user": "Fenêtre Google fermée."
+      "auth/invalid-credential":
+        "E-mail ou mot de passe incorrect.",
+
+      "auth/email-already-in-use":
+        "Cette adresse e-mail possède déjà un compte.",
+
+      "auth/weak-password":
+        "Le mot de passe doit contenir au moins 6 caractères.",
+
+      "auth/invalid-email":
+        "Adresse e-mail invalide.",
+
+      "auth/popup-closed-by-user":
+        "Fenêtre Google fermée."
     };
 
     showAccountMessage(
@@ -1224,20 +1712,19 @@ document.addEventListener("submit", async event => {
     );
 
   } finally {
-    if (submitButton) submitButton.disabled = false;
+    if (submit) submit.disabled = false;
   }
 });
 
-// Filtre catégories
+// FILTRES
 document.addEventListener("change", event => {
-  if (
-    event.target.matches(
-      "#category-filter, #filterSelect, [data-category-filter]"
-    )
-  ) {
+
+  if (event.target.matches(
+    "#category-filter, #filterSelect, [data-category-filter]"
+  )) {
     activeCategory = event.target.value || "all";
 
-    if (["Tous", "Toutes"].includes(activeCategory)) {
+    if (["all", "Tous", "Toutes"].includes(activeCategory)) {
       activeCategory = "all";
     }
 
@@ -1245,32 +1732,66 @@ document.addEventListener("change", event => {
   }
 });
 
-// État de connexion Firebase
+// ÉTAT DE CONNEXION
 onAuthStateChanged(auth, user => {
+
   currentUser = user;
 
-  document.body.dataset.loggedIn = user ? "true" : "false";
+  document.body.dataset.loggedIn = user
+    ? "true"
+    : "false";
 
   document.querySelectorAll(
     "#account-open, #accountBtn, #account-button, [data-account-open]"
   ).forEach(button => {
     button.setAttribute(
       "aria-label",
-      user ? `Mon compte (${user.email})` : "Mon compte"
+      user
+        ? `Mon compte (${user.email})`
+        : "Mon compte"
     );
   });
 
-  const modal = document.querySelector("#polbuy-account-modal");
+  // Le raccourci dashboard n'est affiché que pour l'adresse propriétaire.
+  // Les droits réels restent contrôlés par le custom claim Firebase.
+  if (
+    user?.email === OWNER_EMAIL &&
+    !document.querySelector("#polbuy-admin-shortcut")
+  ) {
+    const button = document.createElement("button");
+
+    button.id = "polbuy-admin-shortcut";
+    button.type = "button";
+    button.textContent = "Dashboard admin";
+
+    button.addEventListener("click", () => {
+      openAdminDashboard().catch(error => {
+        alert(error.message);
+      });
+    });
+
+    (
+      document.querySelector("header nav, header, nav") ||
+      document.body
+    ).appendChild(button);
+  }
+
+  if (!user) {
+    document.querySelector(
+      "#polbuy-admin-shortcut"
+    )?.remove();
+  }
+
+  const modal = document.querySelector(
+    "#polbuy-account-modal"
+  );
 
   if (modal?.classList.contains("is-open")) {
     renderAccountContent();
   }
 });
 
-// =========================================================
-// DÉMARRAGE
-// =========================================================
-
+// INITIALISATION
 function initPolBuy() {
   loadProducts();
   renderCart();
@@ -1281,6 +1802,11 @@ function initPolBuy() {
 
   if (filter) {
     activeCategory = filter.value || "all";
+
+    filter.addEventListener("change", () => {
+      activeCategory = filter.value || "all";
+      renderProducts();
+    });
   }
 }
 
@@ -1294,27 +1820,43 @@ if (document.readyState === "loading") {
   initPolBuy();
 }
 
-// FONCTIONS ACCESSIBLES DEPUIS LE RESTE DU SITE
+// API POL BUY
 window.POL_BUY = {
   app,
   db,
   auth,
   OWNER_EMAIL,
+
   products: STARTER_PRODUCTS,
 
-  adultSizes: ["XS", "S", "M", "L", "XL", "XXL", "XXXL"],
-  childSizes: ["S", "M", "L", "XL"],
+  adultSizes: [
+    "XS", "S", "M", "L", "XL", "XXL", "XXXL"
+  ],
+
+  childSizes: [
+    "S", "M", "L", "XL"
+  ],
+
   shoeSizes: [
-    "36", "36.5", "37", "37.5", "38", "38.5",
-    "39", "39.5", "40", "40.5", "41", "41.5",
-    "42", "42.5", "43"
+    "36", "36.5", "37", "37.5", "38",
+    "38.5", "39", "39.5", "40", "40.5",
+    "41", "41.5", "42", "42.5", "43"
   ],
 
   renderProducts,
   loadProducts,
   importStarterCatalog,
+
   getCart,
   renderCart,
+  openCart,
+  openProduct,
+
+  openAddressBook,
+  getAddresses,
+
+  openAdminDashboard,
+
   createOrder,
   getMyOrders,
   getAllOrders,
@@ -1322,6 +1864,7 @@ window.POL_BUY = {
   cancelOrder,
   updateTracking,
   requestProduct,
+
   registerAccount,
   loginAccount,
   loginWithGoogle,
