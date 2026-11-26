@@ -39,8 +39,8 @@ const PAYPAL_BASE = "https://paypal.me/BUYPOL";
 const EMAIL_SERVICE_ID = "service_u1tqxtl";
 const EMAIL_PUBLIC_KEY = "sA0AhDl6nmEVFqpKr";
 
-const TEMPLATE_PRODUCT_REQUEST = "template_m54py2m";
-const TEMPLATE_TRACKING = "template_t0v2j7h";
+const TEMPLATE_PRODUCT_REQUEST = "template_8eqf2pr";
+const TEMPLATE_TRACKING = "template_vr7m9e7";
 
 emailjs.init({ publicKey: EMAIL_PUBLIC_KEY });
 
