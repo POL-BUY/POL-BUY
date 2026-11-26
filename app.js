@@ -742,7 +742,7 @@ function renderAccount() {
     <section class="account-section">
       <h3>Demander un produit</h3>
       <p>Tu recherches un article qui n'est pas dans la boutique ?
-      Envoie-nous ta demande ici.</p>
+      Envoie-nous ta demande ici,nous ajouterons l'article sous 24h.</p>
 
       <form id="account-request-form">
         <label class="form-label">Ton nom</label>
