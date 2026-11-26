@@ -2,7 +2,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/13.4.0/firebas
 
 import {
   getFirestore, collection, addDoc, getDocs, doc, updateDoc,
-  query, where, orderBy, serverTimestamp, deleteDoc
+  query, where, orderBy, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore.js";
 
 import {
@@ -55,7 +55,6 @@ let cart = JSON.parse(localStorage.getItem("polbuy-cart") || "[]");
 let activeProduct = null;
 let activeImageIndex = 0;
 let adminOrdersCache = new Map();
-let adminReviewsCache = new Map();
 
 /* OUTILS */
 
@@ -419,7 +418,6 @@ const products = [
   }
 ];
 
-
 /* BOUTIQUE */
 
 function getVariants(product) {
@@ -746,8 +744,6 @@ async function placeOrder() {
   try {
     const result = await addDoc(collection(db, "orders"), order);
 
-    /* Aucun e-mail n'est envoyé à la création de commande. */
-
     cart = [];
     saveCart();
     closeOverlay("cart-overlay");
@@ -1046,7 +1042,7 @@ async function loadCustomerOrders() {
   }
 }
 
-/* ADMINISTRATION : COMMANDES ET AVIS */
+/* ADMINISTRATION : COMMANDES UNIQUEMENT */
 
 $("admin-open")?.addEventListener("click", async () => {
   if (!isAdmin()) {
@@ -1172,19 +1168,6 @@ async function renderAdmin() {
         <h3>Commandes (${snap.size})</h3>
         ${ordersHTML || "<p>Aucune commande.</p>"}
       </section>
-
-      <section class="account-section">
-        <h3>Gestion des avis</h3>
-
-        <p>
-          Crée des avis de test, mets des avis à la une
-          ou supprime les avis dont tu n'as plus besoin.
-        </p>
-
-        <div id="admin-reviews">
-          Chargement des avis...
-        </div>
-      </section>
     `;
 
     area.querySelectorAll("[data-save]").forEach(button => {
@@ -1193,314 +1176,10 @@ async function renderAdmin() {
       );
     });
 
-    await renderAdminReviews();
-
   } catch (error) {
     console.error(error);
     area.innerHTML =
       "Erreur de chargement : " + escapeHTML(error.message);
-  }
-}
-
-/* FORMULAIRE D'AJOUT D'AVIS DE TEST */
-
-function getTestReviewFormHTML() {
-  return `
-    <div class="account-section">
-      <h4>Ajouter un avis de test</h4>
-
-      <label class="form-label">Nom affiché</label>
-      <input
-        class="form-field"
-        id="test-review-name"
-        placeholder="Ex : Client test"
-        maxlength="60"
-      >
-
-      <label class="form-label">Note</label>
-      <select class="form-field" id="test-review-rating">
-        <option value="5">5 étoiles</option>
-        <option value="4">4 étoiles</option>
-        <option value="3">3 étoiles</option>
-        <option value="2">2 étoiles</option>
-        <option value="1">1 étoile</option>
-      </select>
-
-      <label class="form-label">Commentaire</label>
-      <textarea
-        class="form-field"
-        id="test-review-comment"
-        maxlength="1000"
-        placeholder="Écris ton avis de test..."
-      ></textarea>
-
-      <button class="primary-btn" id="create-test-review">
-        AJOUTER L'AVIS DE TEST
-      </button>
-
-      <p id="test-review-message" role="status"></p>
-    </div>
-  `;
-}
-
-/* AFFICHER LES AVIS DANS LE DASHBOARD */
-
-async function renderAdminReviews() {
-  const target = $("admin-reviews");
-
-  if (!target || !isAdmin()) return;
-
-  try {
-    const snap = await getDocs(collection(db, "reviews"));
-
-    adminReviewsCache.clear();
-
-    const reviews = snap.docs.map(reviewDoc => ({
-      id: reviewDoc.id,
-      ...reviewDoc.data()
-    }));
-
-    reviews.sort((a, b) => {
-      const dateA = a.createdAt?.toMillis?.() || 0;
-      const dateB = b.createdAt?.toMillis?.() || 0;
-      return dateB - dateA;
-    });
-
-    const featuredCount = reviews.filter(
-      review => review.featured === true
-    ).length;
-
-    reviews.forEach(review => {
-      adminReviewsCache.set(review.id, review);
-    });
-
-    target.innerHTML = `
-      ${getTestReviewFormHTML()}
-
-      <h4>Liste des avis (${reviews.length})</h4>
-
-      ${
-        reviews.length
-          ? `
-            <div class="reviews-grid">
-              ${reviews.map(review => {
-                const rating = Math.max(
-                  0,
-                  Math.min(5, Number(review.rating) || 0)
-                );
-
-                return `
-                  <article class="review-card">
-
-                    ${
-                      review.isTest
-                        ? '<div class="review-test-label">AVIS DE TEST</div>'
-                        : '<div class="review-test-label">AVIS CLIENT</div>'
-                    }
-
-                    <div class="stars">
-                      ${"★".repeat(rating)}${"☆".repeat(5 - rating)}
-                    </div>
-
-                    <strong>
-                      ${escapeHTML(review.name || "Client")}
-                    </strong>
-
-                    <p>${escapeHTML(review.comment || "")}</p>
-
-                    ${
-                      review.orderId
-                        ? `<small>Commande : ${escapeHTML(review.orderId)}</small>`
-                        : `<small>Avis ajouté depuis le dashboard</small>`
-                    }
-
-                    <p>
-                      ${
-                        review.featured
-                          ? "<strong>À la une</strong>"
-                          : "Non mis à la une"
-                      }
-                    </p>
-
-                    <div class="review-admin-actions">
-
-                      <button
-                        class="primary-btn"
-                        data-feature="${escapeHTML(review.id)}"
-                      >
-                        ${
-                          review.featured
-                            ? "RETIRER DE LA UNE"
-                            : "METTRE À LA UNE"
-                        }
-                      </button>
-
-                      <button
-                        class="primary-btn"
-                        data-delete-review="${escapeHTML(review.id)}"
-                      >
-                        SUPPRIMER
-                      </button>
-
-                    </div>
-
-                  </article>
-                `;
-              }).join("")}
-            </div>
-          `
-          : "<p>Aucun avis enregistré pour le moment.</p>"
-      }
-    `;
-
-    $("create-test-review")?.addEventListener(
-      "click",
-      addTestReview
-    );
-
-    target.querySelectorAll("[data-feature]").forEach(button => {
-      button.addEventListener("click", () => {
-        toggleFeaturedReview(
-          button.dataset.feature,
-          featuredCount
-        );
-      });
-    });
-
-    target.querySelectorAll("[data-delete-review]").forEach(button => {
-      button.addEventListener("click", () => {
-        removeReview(button.dataset.deleteReview);
-      });
-    });
-
-  } catch (error) {
-    console.error("Erreur chargement avis :", error);
-
-    target.innerHTML = `
-      ${getTestReviewFormHTML()}
-      <p>
-        Impossible de charger les avis :
-        ${escapeHTML(error.message)}
-      </p>
-    `;
-
-    $("create-test-review")?.addEventListener(
-      "click",
-      addTestReview
-    );
-  }
-}
-
-/* CRÉER UN AVIS DE TEST */
-
-async function addTestReview() {
-  if (!isAdmin()) {
-    return alert("Accès refusé.");
-  }
-
-  const name = $("test-review-name")?.value.trim();
-  const rating = Number($("test-review-rating")?.value);
-  const comment = $("test-review-comment")?.value.trim();
-
-  const message = $("test-review-message");
-  const button = $("create-test-review");
-
-  if (!name || !comment) {
-    if (message) {
-      message.textContent = "Remplis le nom et le commentaire.";
-    }
-    return;
-  }
-
-  if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
-    if (message) {
-      message.textContent = "La note doit être comprise entre 1 et 5.";
-    }
-    return;
-  }
-
-  button.disabled = true;
-  button.textContent = "AJOUT EN COURS...";
-
-  try {
-    await addDoc(collection(db, "reviews"), {
-      name,
-      rating,
-      comment,
-      featured: false,
-      isTest: true,
-      createdAt: serverTimestamp()
-    });
-
-    await renderAdminReviews();
-
-  } catch (error) {
-    console.error("Erreur ajout avis de test :", error);
-
-    if (message) {
-      message.textContent = "Erreur : " + error.message;
-    }
-
-    button.disabled = false;
-    button.textContent = "AJOUTER L'AVIS DE TEST";
-  }
-}
-
-/* METTRE UN AVIS À LA UNE */
-
-async function toggleFeaturedReview(id, knownCount) {
-  if (!isAdmin()) {
-    return alert("Accès refusé.");
-  }
-
-  const review = adminReviewsCache.get(id);
-  if (!review) return;
-
-  try {
-    const snap = await getDocs(collection(db, "reviews"));
-
-    const featuredCount = snap.docs.filter(
-      reviewDoc => reviewDoc.data().featured === true
-    ).length;
-
-    if (!review.featured && featuredCount >= 2) {
-      return alert(
-        "Tu as déjà deux avis à la une. Retire-en un avant d'en ajouter un autre."
-      );
-    }
-
-    await updateDoc(doc(db, "reviews", id), {
-      featured: !review.featured
-    });
-
-    await renderAdminReviews();
-
-  } catch (error) {
-    console.error(error);
-    alert("Erreur : " + error.message);
-  }
-}
-
-/* SUPPRIMER UN AVIS */
-
-async function removeReview(id) {
-  if (!isAdmin()) {
-    return alert("Accès refusé.");
-  }
-
-  const confirmed = confirm(
-    "Veux-tu vraiment supprimer définitivement cet avis ?"
-  );
-
-  if (!confirmed) return;
-
-  try {
-    await deleteDoc(doc(db, "reviews", id));
-    await renderAdminReviews();
-
-  } catch (error) {
-    console.error(error);
-    alert("Erreur lors de la suppression : " + error.message);
   }
 }
 
