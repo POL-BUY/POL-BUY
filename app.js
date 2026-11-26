@@ -63,17 +63,24 @@ function escapeHTML(value) {
 
 async function sendEmail(templateId, params) {
   try {
-    await emailjs.send(EMAIL_SERVICE_ID, templateId, params);
+    const result = await emailjs.send(
+      EMAIL_SERVICE_ID,
+      templateId,
+      params
+    );
+    console.log("EmailJS envoyé :", result);
     return true;
   } catch (error) {
     console.error("Erreur EmailJS :", error);
+    alert(
+      "Erreur EmailJS : " +
+      (error?.text || error?.message || "Erreur inconnue")
+    );
     return false;
   }
 }
 
-/* CATALOGUE
-   Ajoute ici les autres fiches produits et leurs photos.
-   Une fiche peut contenir plusieurs photos et plusieurs couleurs. */
+/* CATALOGUE */
 
 const products = [
   {
@@ -149,8 +156,14 @@ const products = [
     brand: "C.P. Company",
     name: "Pullover",
     variants: [
-      {color:"Noir",price:6.34,images:["https://www.yoox.com/images/items/14/14493809pk_14_f.jpg?impolicy=crop&width=387&height=490"]},
-      {color:"Blanc",price:6.34,images:["https://www.yoox.com/images/items/14/14493809dp_14_f.jpg?impolicy=crop&width=387&height=490"]}
+      {
+        color: "Noir", price: 6.34,
+        images: ["https://www.yoox.com/images/items/14/14493809pk_14_f.jpg?impolicy=crop&width=387&height=490"]
+      },
+      {
+        color: "Blanc", price: 6.34,
+        images: ["https://www.yoox.com/images/items/14/14493809dp_14_f.jpg?impolicy=crop&width=387&height=490"]
+      }
     ],
     sizes: ["XS","S","M","L","XL","XXL","XXXL"]
   },
@@ -170,8 +183,14 @@ const products = [
     brand: "Stone Island",
     name: "Stone Island Pull",
     variants: [
-      {color:"Noir",price:3.46,images:["https://cdn-images.farfetch-contents.com/25/37/28/56/25372856_75614274_1000.jpg?ov=lightgrey"]},
-      {color:"Blanc",price:3.46,images:["https://cdn-images.farfetch-contents.com/39/97/85/22/39978522_99261882_1000.jpg?ov=lightgrey"]}
+      {
+        color: "Noir", price: 3.46,
+        images: ["https://cdn-images.farfetch-contents.com/25/37/28/56/25372856_75614274_1000.jpg?ov=lightgrey"]
+      },
+      {
+        color: "Blanc", price: 3.46,
+        images: ["https://cdn-images.farfetch-contents.com/39/97/85/22/39978522_99261882_1000.jpg?ov=lightgrey"]
+      }
     ],
     sizes: ["XS","S","M","L","XL","XXL","XXXL"]
   },
@@ -180,19 +199,61 @@ const products = [
     brand: "Stone Island",
     name: "Stone Island Cotton T-shirt",
     variants: [
-      {color:"Noir",price:1.46,images:["https://i.etsystatic.com/54513826/r/il/d0b87b/7533878689/il_1588xN.7533878689_639l.jpg"]},
-      {color:"Blanc",price:1.46,images:["https://cdn-images.farfetch-contents.com/25/37/28/56/25372856_75614301_1000.jpg?ov=lightgrey"]}
+      {
+        color: "Noir", price: 1.46,
+        images: ["https://i.etsystatic.com/54513826/r/il/d0b87b/7533878689/il_1588xN.7533878689_639l.jpg"]
+      },
+      {
+        color: "Blanc", price: 1.46,
+        images: ["https://cdn-images.farfetch-contents.com/25/37/28/56/25372856_75614301_1000.jpg?ov=lightgrey"]
+      }
     ],
     sizes: ["XS","S","M","L","XL","XXL","XXXL"]
   },
   {
     id: "ua-tech-boy",
     brand: "Under Armour",
-    name: "UA Tech 2.0 ",
-    price: 3.46,
-    color: "Blanc",
-    images: [
-      "https://underarmour.scene7.com/is/image/Underarmour/PS1363284-100_HF?rp=standard-0pad%7Cpdp&qlt=85&bgc=f0f0f0&wid=800&hei=1000&op_usm=1.75%2C0.3%2C2%2C0"
+    name: "UA Tech 2.0",
+    variants: [
+      {
+        color: "Blanc", price: 3.46,
+        images: [
+          "https://underarmour.scene7.com/is/image/Underarmour/PS1363284-100_HF?rp=standard-0pad%7Cpdp&qlt=85&bgc=f0f0f0&wid=800&hei=1000&op_usm=1.75%2C0.3%2C2%2C0"
+        ]
+      },
+      {
+        color: "Bleu", price: 3.46,
+        images: [
+          "https://underarmour.scene7.com/is/image/Underarmour/PS1363284-482_HF?rp=standard-0pad%7Cpdp&qlt=85&bgc=f0f0f0&wid=800&hei=1000&op_usm=1.75%2C0.3%2C2%2C0"
+        ]
+      },
+      {
+        color: "Noir motif", price: 3.46,
+        images: [
+          "https://underarmour.scene7.com/is/image/Underarmour/PS1363284-003_HF?rp=standard-0pad%7Cpdp&qlt=85&bgc=f0f0f0&wid=800&hei=1000&op_usm=1.75%2C0.3%2C2%2C0"
+        ]
+      },
+      {
+        color: "Orange", price: 3.46,
+        images: [
+          "https://underarmour.scene7.com/is/image/Underarmour/PS1363284-808_HB?rp=standard-0pad%7Cpdp&qlt=85&bgc=f0f0f0&wid=800&hei=1000&op_usm=1.75%2C0.3%2C2%2C0",
+          "https://underarmour.scene7.com/is/image/Underarmour/PS1363284-808_HS?rp=standard-0pad%7Cpdp&qlt=85&bgc=f0f0f0&wid=800&hei=1000&op_usm=1.75%2C0.3%2C2%2C0"
+        ]
+      },
+      {
+        color: "Rose", price: 3.46,
+        images: [
+          "https://underarmour.scene7.com/is/image/Underarmour/PS1363284-673_HB?rp=standard-0pad%7Cpdp&qlt=85&bgc=f0f0f0&wid=800&hei=1000&op_usm=1.75%2C0.3%2C2%2C0",
+          "https://underarmour.scene7.com/is/image/Underarmour/PS1363284-673_HS?rp=standard-0pad%7Cpdp&qlt=85&bgc=f0f0f0&wid=800&hei=1000&op_usm=1.75%2C0.3%2C2%2C0"
+        ]
+      },
+      {
+        color: "Noir sans motif", price: 3.46,
+        images: [
+          "https://underarmour.scene7.com/is/image/Underarmour/PS1363284-001_HB?rp=standard-0pad%7Cpdp&qlt=85&bgc=f0f0f0&wid=800&hei=1000&op_usm=1.75%2C0.3%2C2%2C0",
+          "https://underarmour.scene7.com/is/image/Underarmour/PS1363284-001_HF?rp=standard-0pad%7Cpdp&qlt=85&bgc=f0f0f0&wid=800&hei=1000&op_usm=1.75%2C0.3%2C2%2C0"
+        ]
+      }
     ],
     sizes: ["S","M","L","XL"]
   },
@@ -226,11 +287,10 @@ function renderProducts() {
 
   grid.innerHTML = products.map(product => {
     const variant = getVariants(product)[0];
-    const image = variant.images[0];
-
     return `
       <article class="product-card">
-        <img src="${escapeHTML(image)}" alt="${escapeHTML(product.name)}"
+        <img src="${escapeHTML(variant.images[0])}"
+          alt="${escapeHTML(product.name)}"
           data-product="${escapeHTML(product.id)}">
         <h3>${escapeHTML(product.name)}</h3>
         <p>${escapeHTML(product.brand)}</p>
@@ -243,7 +303,9 @@ function renderProducts() {
   }).join("");
 
   grid.querySelectorAll("[data-product]").forEach(element => {
-    element.addEventListener("click", () => openProduct(element.dataset.product));
+    element.addEventListener("click", () =>
+      openProduct(element.dataset.product)
+    );
   });
 }
 
@@ -264,21 +326,24 @@ function renderProductDetail() {
     <h2>${escapeHTML(product.name)}</h2>
     <p>${escapeHTML(product.brand)}</p>
     <img class="product-detail-image" id="detail-image"
-      src="${escapeHTML(variant.images[activeImageIndex] || variant.images[0])}"
-      alt="${escapeHTML(product.name)}">
+      src="${escapeHTML(variant.images[0])}" alt="${escapeHTML(product.name)}">
     <div class="detail-arrows">
       <button id="previous-image">← Précédente</button>
-      <span id="image-position">${activeImageIndex + 1} / ${variant.images.length}</span>
+      <span id="image-position">1 / ${variant.images.length}</span>
       <button id="next-image">Suivante →</button>
     </div>
     <p><strong id="detail-price">${money(variant.price)}</strong></p>
     <label class="form-label">Couleur</label>
     <select class="form-field" id="detail-color">
-      ${variants.map((v,i)=>`<option value="${i}">${escapeHTML(v.color)}</option>`).join("")}
+      ${variants.map((v,i) =>
+        `<option value="${i}">${escapeHTML(v.color)}</option>`
+      ).join("")}
     </select>
     <label class="form-label">Taille</label>
     <select class="form-field" id="detail-size">
-      ${(product.sizes || ["Taille unique"]).map(s=>`<option>${escapeHTML(s)}</option>`).join("")}
+      ${(product.sizes || ["Taille unique"]).map(s =>
+        `<option>${escapeHTML(s)}</option>`
+      ).join("")}
     </select>
     <button class="primary-btn" id="add-to-cart">AJOUTER AU PANIER</button>
   `;
@@ -307,7 +372,8 @@ function updateProductImage() {
   const variant = getVariants(activeProduct)[Number($("detail-color").value)];
   $("detail-image").src = variant.images[activeImageIndex];
   $("detail-price").textContent = money(variant.price);
-  $("image-position").textContent = `${activeImageIndex + 1} / ${variant.images.length}`;
+  $("image-position").textContent =
+    `${activeImageIndex + 1} / ${variant.images.length}`;
 }
 
 function addSelectedProductToCart() {
@@ -315,7 +381,6 @@ function addSelectedProductToCart() {
   const variant = getVariants(product)[Number($("detail-color").value)];
   const size = $("detail-size").value;
   const key = `${product.id}-${variant.color}-${size}`;
-
   const existing = cart.find(item => item.key === key);
 
   if (existing) {
@@ -341,7 +406,9 @@ function addSelectedProductToCart() {
 /* PANIER */
 
 function cartSubtotal() {
-  return cart.reduce((sum,item)=>sum + Number(item.price)*Number(item.quantity),0);
+  return cart.reduce(
+    (sum, item) => sum + Number(item.price) * Number(item.quantity), 0
+  );
 }
 
 function shippingCost() {
@@ -350,12 +417,15 @@ function shippingCost() {
 }
 
 function cartTotal() {
-  return Number((cartSubtotal()+shippingCost()).toFixed(2));
+  return Number((cartSubtotal() + shippingCost()).toFixed(2));
 }
 
 function saveCart() {
-  localStorage.setItem("polbuy-cart",JSON.stringify(cart));
-  $("cart-count").textContent = cart.reduce((sum,item)=>sum+item.quantity,0);
+  localStorage.setItem("polbuy-cart", JSON.stringify(cart));
+  if ($("cart-count")) {
+    $("cart-count").textContent =
+      cart.reduce((sum, item) => sum + item.quantity, 0);
+  }
   renderCart();
 }
 
@@ -370,38 +440,42 @@ function renderCart() {
     return;
   }
 
-  container.innerHTML = cart.map(item=>`
+  container.innerHTML = cart.map(item => `
     <div class="cart-line">
       <div>
         <strong>${escapeHTML(item.name)}</strong><br>
-        <small>${escapeHTML(item.color)} · Taille ${escapeHTML(item.size)} · Qté ${item.quantity}</small><br>
-        <strong>${money(item.price*item.quantity)}</strong>
+        <small>${escapeHTML(item.color)} · Taille ${escapeHTML(item.size)}
+        · Qté ${Number(item.quantity)}</small><br>
+        <strong>${money(item.price * item.quantity)}</strong>
       </div>
       <button class="small-btn" data-remove="${escapeHTML(item.key)}">Retirer</button>
     </div>
   `).join("");
 
-  container.querySelectorAll("[data-remove]").forEach(button=>{
-    button.addEventListener("click",()=>{
-      cart=cart.filter(item=>item.key!==button.dataset.remove);
+  container.querySelectorAll("[data-remove]").forEach(button => {
+    button.addEventListener("click", () => {
+      cart = cart.filter(item => item.key !== button.dataset.remove);
       saveCart();
     });
   });
 
-  const subtotal=cartSubtotal();
-  const shipping=shippingCost();
-  const total=cartTotal();
+  const subtotal = cartSubtotal();
+  const shipping = shippingCost();
+  const total = cartTotal();
 
-  $("cart-total").innerHTML=`
+  $("cart-total").innerHTML = `
     <p>Sous-total : <strong>${money(subtotal)}</strong></p>
-    <p>Livraison : <strong>${shipping===0?"Offerte":money(shipping)}</strong></p>
+    <p>Livraison : <strong>${shipping === 0 ? "Offerte" : money(shipping)}</strong></p>
     <h3>TOTAL : ${money(total)}</h3>
   `;
 
-  $("checkout-area").innerHTML=`
-    <div class="notice">La commande reste en attente jusqu'à vérification réelle du paiement.</div>
+  $("checkout-area").innerHTML = `
+    <div class="notice">
+      La commande reste en attente jusqu'à vérification réelle du paiement.
+    </div>
     <label class="form-label">Adresse de livraison</label>
-    <textarea id="delivery-address" class="form-field" required placeholder="Nom, rue, code postal, ville, pays"></textarea>
+    <textarea id="delivery-address" class="form-field"
+      placeholder="Nom, rue, code postal, ville, pays"></textarea>
     <label class="form-label">Téléphone (facultatif)</label>
     <input id="delivery-phone" class="form-field">
     <a class="primary-btn" style="display:block;text-align:center;text-decoration:none"
@@ -411,7 +485,7 @@ function renderCart() {
     <button class="primary-btn" id="place-order">ENREGISTRER MA COMMANDE</button>
   `;
 
-  $("place-order").addEventListener("click",placeOrder);
+  $("place-order").addEventListener("click", placeOrder);
 }
 
 async function placeOrder() {
@@ -423,80 +497,73 @@ async function placeOrder() {
 
   if (!cart.length) return alert("Ton panier est vide.");
 
-  const address=$("delivery-address").value.trim();
-  const phone=$("delivery-phone").value.trim();
+  const address = $("delivery-address").value.trim();
+  const phone = $("delivery-phone").value.trim();
 
   if (!address) return alert("Indique ton adresse de livraison.");
 
-  const subtotal=Number(cartSubtotal().toFixed(2));
-  const shipping=Number(shippingCost().toFixed(2));
-  const total=Number(cartTotal().toFixed(2));
+  const subtotal = Number(cartSubtotal().toFixed(2));
+  const shipping = Number(shippingCost().toFixed(2));
+  const total = Number(cartTotal().toFixed(2));
 
-  const order={
-    userId:currentUser.uid,
-    customerName:currentUser.displayName || currentUser.email,
-    customerEmail:currentUser.email,
-    address,phone,
-    items:cart.map(item=>({...item})),
-    subtotal,shipping,total,
-    paymentMethod:"PayPal",
-    paymentVerified:false,
-    status:"En attente de vérification du paiement",
-    carrier:"",
-    trackingNumber:"",
-    trackingStatus:"",
-    trackingLocation:"",
-    estimatedDelivery:"",
-    createdAt:serverTimestamp()
+  const order = {
+    userId: currentUser.uid,
+    customerName: currentUser.displayName || currentUser.email,
+    customerEmail: currentUser.email,
+    address,
+    phone,
+    items: cart.map(item => ({ ...item })),
+    subtotal,
+    shipping,
+    total,
+    paymentMethod: "PayPal",
+    paymentVerified: false,
+    status: "En attente de vérification du paiement",
+    carrier: "",
+    trackingNumber: "",
+    trackingStatus: "",
+    trackingLocation: "",
+    estimatedDelivery: "",
+    createdAt: serverTimestamp()
   };
 
   try {
-    const result=await addDoc(collection(db,"orders"),order);
+    const result = await addDoc(collection(db, "orders"), order);
 
-    const emailSent=await sendEmail(TEMPLATE_NEW_ORDER,{
-      to_email:ADMIN_EMAIL,
-      order_id:result.id,
-      customer_name:order.customerName,
-      customer_email:order.customerEmail,
-      items:order.items.map(i=>`${i.name} — ${i.color} — ${i.size} × ${i.quantity} — ${money(i.price)}`).join("\n"),
-      subtotal:money(subtotal),
-      shipping:money(shipping),
-      total:money(total),
-      status:order.status
-    });
+    /* IMPORTANT : aucun e-mail n'est envoyé à la création de commande. */
 
-    cart=[];
+    cart = [];
     saveCart();
     closeOverlay("cart-overlay");
 
     alert(
-      "Commande enregistrée : "+result.id+
-      "\nTotal : "+money(total)+
-      "\nNotification e-mail : "+(emailSent?"envoyée":"non envoyée, vérifie EmailJS")+
+      "Commande enregistrée : " + result.id +
+      "\nTotal : " + money(total) +
       "\nLe paiement reste à vérifier manuellement."
     );
 
     openAccount();
-  } catch(error) {
+  } catch (error) {
     console.error(error);
-    alert("Erreur lors de l'enregistrement : "+error.message);
+    alert("Erreur lors de l'enregistrement : " + error.message);
   }
 }
 
-/* COMPTE CLIENT */
+/* COMPTE CLIENT ET DEMANDE DE PRODUIT */
 
 function openAccount() {
   renderAccount();
   openOverlay("account-overlay");
 }
 
-$("account-open").addEventListener("click",openAccount);
+$("account-open")?.addEventListener("click", openAccount);
 
 function renderAccount() {
-  const area=$("account-content");
+  const area = $("account-content");
+  if (!area) return;
 
   if (!currentUser) {
-    area.innerHTML=`
+    area.innerHTML = `
       <h3>Connexion</h3>
       <label class="form-label">E-mail</label>
       <input id="auth-email" class="form-field" type="email">
@@ -508,85 +575,192 @@ function renderAccount() {
       <div id="auth-error"></div>
     `;
 
-    $("login-btn").addEventListener("click",()=>emailAuth(false));
-    $("register-btn").addEventListener("click",()=>emailAuth(true));
-    $("google-btn").addEventListener("click",googleLogin);
+    $("login-btn").addEventListener("click", () => emailAuth(false));
+    $("register-btn").addEventListener("click", () => emailAuth(true));
+    $("google-btn").addEventListener("click", googleLogin);
     return;
   }
 
-  area.innerHTML=`
-    <p>Connecté avec : ${escapeHTML(currentUser.email)}</p>
-    <h3>Mes commandes</h3>
-    <div id="customer-orders">Chargement...</div>
+  area.innerHTML = `
+    <p>Connecté avec : <strong>${escapeHTML(currentUser.email)}</strong></p>
+
+    <section class="account-section">
+      <h3>Mes commandes</h3>
+      <div id="customer-orders">Chargement...</div>
+    </section>
+
+    <section class="account-section">
+      <h3>Demander un produit</h3>
+      <p>Tu recherches un article qui n'est pas dans la boutique ?
+      Envoie-nous ta demande ici.</p>
+
+      <form id="account-request-form">
+        <label class="form-label">Ton nom</label>
+        <input class="form-field" name="name" required
+          value="${escapeHTML(currentUser.displayName || "")}">
+
+        <label class="form-label">Ton e-mail</label>
+        <input class="form-field" name="email" type="email" required
+          value="${escapeHTML(currentUser.email || "")}">
+
+        <label class="form-label">Marque recherchée</label>
+        <input class="form-field" name="brand" required
+          placeholder="Ex : Nike, Adidas...">
+
+        <label class="form-label">Nom du produit</label>
+        <input class="form-field" name="product" required
+          placeholder="Nom de l'article">
+
+        <label class="form-label">Description ou lien (facultatif)</label>
+        <textarea class="form-field" name="description"
+          placeholder="Décris le produit ou colle un lien"></textarea>
+
+        <button class="primary-btn" type="submit">
+          ENVOYER MA DEMANDE
+        </button>
+        <p id="account-request-message" role="status"></p>
+      </form>
+    </section>
+
     <button class="primary-btn" id="logout-btn">SE DÉCONNECTER</button>
   `;
 
-  $("logout-btn").addEventListener("click",()=>signOut(auth));
+  $("logout-btn").addEventListener("click", () => signOut(auth));
+
+  /* Le formulaire est maintenant dans le compte client. */
+  const requestForm = $("account-request-form");
+
+  requestForm.addEventListener("submit", async event => {
+    event.preventDefault();
+
+    /* On conserve une référence au formulaire avant le await. */
+    const formElement = event.currentTarget;
+    const message = $("account-request-message");
+    const submitButton = formElement.querySelector('button[type="submit"]');
+    const form = new FormData(formElement);
+
+    const request = {
+      userId: currentUser.uid,
+      name: String(form.get("name") || "").trim(),
+      email: String(form.get("email") || "").trim(),
+      brand: String(form.get("brand") || "").trim(),
+      product: String(form.get("product") || "").trim(),
+      description: String(form.get("description") || "").trim(),
+      createdAt: serverTimestamp()
+    };
+
+    if (!request.name || !request.email || !request.brand || !request.product) {
+      message.textContent = "Complète les champs obligatoires.";
+      return;
+    }
+
+    submitButton.disabled = true;
+    submitButton.textContent = "ENVOI EN COURS...";
+
+    try {
+      await addDoc(collection(db, "productRequests"), request);
+
+      const sent = await sendEmail(TEMPLATE_PRODUCT_REQUEST, {
+        to_email: ADMIN_EMAIL,
+        customer_name: request.name,
+        customer_email: request.email,
+        brand: request.brand,
+        product: request.product,
+        description: request.description
+      });
+
+      /* La demande est déjà sauvegardée dans Firestore. */
+      formElement.reset();
+
+      message.textContent = sent
+        ? "Demande enregistrée et e-mail envoyé à POL BUY."
+        : "Demande enregistrée dans ton compte, mais l'e-mail n'a pas été envoyé. POL BUY pourra retrouver la demande dans Firebase.";
+
+      /* Remet l'adresse e-mail du client après le reset. */
+      formElement.elements.email.value = currentUser.email || "";
+    } catch (error) {
+      console.error("Erreur demande produit :", error);
+      message.textContent = "Erreur : " + error.message;
+    } finally {
+      submitButton.disabled = false;
+      submitButton.textContent = "ENVOYER MA DEMANDE";
+    }
+  });
+
   loadCustomerOrders();
 }
 
 async function emailAuth(register) {
-  const email=$("auth-email").value.trim();
-  const password=$("auth-password").value;
+  const email = $("auth-email").value.trim();
+  const password = $("auth-password").value;
 
   try {
     if (!email || !password) throw new Error("Complète les champs.");
-    if (register) await createUserWithEmailAndPassword(auth,email,password);
-    else await signInWithEmailAndPassword(auth,email,password);
-  } catch(error) {
-    $("auth-error").textContent=error.message;
+    if (register) {
+      await createUserWithEmailAndPassword(auth, email, password);
+    } else {
+      await signInWithEmailAndPassword(auth, email, password);
+    }
+  } catch (error) {
+    $("auth-error").textContent = error.message;
   }
 }
 
 async function googleLogin() {
   try {
-    await signInWithPopup(auth,googleProvider);
-  } catch(error) {
-    $("auth-error").textContent=error.message;
+    await signInWithPopup(auth, googleProvider);
+  } catch (error) {
+    $("auth-error").textContent = error.message;
   }
 }
 
 async function loadCustomerOrders() {
   if (!currentUser) return;
 
-  const target=$("customer-orders");
+  const target = $("customer-orders");
+  if (!target) return;
 
   try {
-    const q=query(collection(db,"orders"),where("userId","==",currentUser.uid));
-    const snap=await getDocs(q);
-    target.innerHTML="";
+    const q = query(
+      collection(db, "orders"),
+      where("userId", "==", currentUser.uid)
+    );
+    const snap = await getDocs(q);
+    target.innerHTML = "";
 
     if (snap.empty) {
-      target.textContent="Aucune commande pour le moment.";
+      target.textContent = "Aucune commande pour le moment.";
       return;
     }
 
-    snap.forEach(orderDoc=>{
-      const order=orderDoc.data();
-      const div=document.createElement("div");
-      div.className="admin-order";
-      div.innerHTML=`
+    snap.forEach(orderDoc => {
+      const order = orderDoc.data();
+      const div = document.createElement("div");
+      div.className = "admin-order";
+
+      div.innerHTML = `
         <div>
-          <strong>Commande ${escapeHTML(orderDoc.id.slice(0,8))}</strong><br>
+          <strong>Commande ${escapeHTML(orderDoc.id.slice(0, 8))}</strong><br>
           <small>${escapeHTML(order.status)}</small><br>
-          <small>Transporteur : ${escapeHTML(order.carrier||"Non renseigné")}</small><br>
-          <small>Suivi : ${escapeHTML(order.trackingNumber||"Non renseigné")}</small><br>
-          <small>${escapeHTML(order.trackingStatus||"")}</small><br>
-          <small>Livraison estimée : ${escapeHTML(order.estimatedDelivery||"Non renseignée")}</small>
+          <small>Transporteur : ${escapeHTML(order.carrier || "Non renseigné")}</small><br>
+          <small>Suivi : ${escapeHTML(order.trackingNumber || "Non renseigné")}</small><br>
+          <small>${escapeHTML(order.trackingStatus || "")}</small><br>
+          <small>Livraison estimée : ${escapeHTML(order.estimatedDelivery || "Non renseignée")}</small>
         </div>
         <strong>${money(order.total)}</strong>
       `;
+
       target.appendChild(div);
     });
-  } catch(error) {
+  } catch (error) {
     console.error(error);
-    target.textContent="Impossible de charger les commandes.";
+    target.textContent = "Impossible de charger les commandes.";
   }
 }
 
 /* ADMINISTRATION */
 
-$("admin-open").addEventListener("click",async()=>{
+$("admin-open")?.addEventListener("click", async () => {
   if (!isAdmin()) return alert("Accès réservé à l'administrateur.");
   openOverlay("admin-overlay");
   await renderAdmin();
@@ -595,63 +769,71 @@ $("admin-open").addEventListener("click",async()=>{
 async function renderAdmin() {
   if (!isAdmin()) return;
 
-  const area=$("admin-content");
-  area.innerHTML="<p>Chargement...</p>";
+  const area = $("admin-content");
+  area.innerHTML = "<p>Chargement...</p>";
 
   try {
-    const snap=await getDocs(query(collection(db,"orders"),orderBy("createdAt","desc")));
-    area.innerHTML="";
+    const snap = await getDocs(
+      query(collection(db, "orders"), orderBy("createdAt", "desc"))
+    );
+
+    area.innerHTML = "";
     adminOrdersCache.clear();
 
     if (snap.empty) {
-      area.textContent="Aucune commande.";
+      area.textContent = "Aucune commande.";
       return;
     }
 
-    snap.forEach(orderDoc=>{
-      const o=orderDoc.data();
-      const id=orderDoc.id;
-      adminOrdersCache.set(id,o);
+    snap.forEach(orderDoc => {
+      const o = orderDoc.data();
+      const id = orderDoc.id;
+      adminOrdersCache.set(id, o);
 
-      const card=document.createElement("div");
-      card.className="admin-order";
-      card.style.display="block";
+      const card = document.createElement("div");
+      card.className = "admin-order";
+      card.style.display = "block";
 
-      const statuses=[
+      const statuses = [
         "En attente de vérification du paiement",
         "Payée — paiement vérifié",
-        "Préparation","Expédiée","Livrée","Annulée"
+        "Préparation",
+        "Expédiée",
+        "Livrée",
+        "Annulée"
       ];
 
-      card.innerHTML=`
+      card.innerHTML = `
         <strong>Commande ${escapeHTML(id)}</strong>
         <p>Client : ${escapeHTML(o.customerName)} — ${escapeHTML(o.customerEmail)}</p>
         <p>Adresse : ${escapeHTML(o.address)}</p>
-        <p>Articles : ${(o.items||[]).map(i=>
+        <p>Articles : ${(o.items || []).map(i =>
           `${escapeHTML(i.name)} (${escapeHTML(i.color)}, ${escapeHTML(i.size)}) × ${Number(i.quantity)}`
         ).join("<br>")}</p>
         <p><strong>Total : ${money(o.total)}</strong></p>
-        <p>Paiement vérifié : ${o.paymentVerified?"Oui":"Non"}</p>
+        <p>Paiement vérifié : ${o.paymentVerified ? "Oui" : "Non"}</p>
 
         <label class="form-label">Statut</label>
         <select class="form-field" id="status-${id}">
-          ${statuses.map(s=>`<option ${o.status===s?"selected":""}>${s}</option>`).join("")}
+          ${statuses.map(s =>
+            `<option ${o.status === s ? "selected" : ""}>${escapeHTML(s)}</option>`
+          ).join("")}
         </select>
 
         <label class="form-label">Transporteur</label>
-        <input class="form-field" id="carrier-${id}" value="${escapeHTML(o.carrier||"")}">
+        <input class="form-field" id="carrier-${id}" value="${escapeHTML(o.carrier || "")}">
 
         <label class="form-label">Numéro de suivi</label>
-        <input class="form-field" id="tracking-${id}" value="${escapeHTML(o.trackingNumber||"")}">
+        <input class="form-field" id="tracking-${id}" value="${escapeHTML(o.trackingNumber || "")}">
 
         <label class="form-label">État du suivi</label>
-        <input class="form-field" id="trackstatus-${id}" value="${escapeHTML(o.trackingStatus||"")}">
+        <input class="form-field" id="trackstatus-${id}" value="${escapeHTML(o.trackingStatus || "")}">
 
         <label class="form-label">Localisation</label>
-        <input class="form-field" id="location-${id}" value="${escapeHTML(o.trackingLocation||"")}">
+        <input class="form-field" id="location-${id}" value="${escapeHTML(o.trackingLocation || "")}">
 
         <label class="form-label">Livraison estimée</label>
-        <input class="form-field" id="delivery-${id}" value="${escapeHTML(o.estimatedDelivery||"")}">
+        <input class="form-field" id="delivery-${id}" value="${escapeHTML(o.estimatedDelivery || "")}">
 
         <button class="primary-btn" data-save="${id}">ENREGISTRER</button>
       `;
@@ -659,121 +841,84 @@ async function renderAdmin() {
       area.appendChild(card);
     });
 
-    area.querySelectorAll("[data-save]").forEach(button=>{
-      button.addEventListener("click",()=>saveOrderChanges(button.dataset.save));
+    area.querySelectorAll("[data-save]").forEach(button => {
+      button.addEventListener("click", () =>
+        saveOrderChanges(button.dataset.save)
+      );
     });
-  } catch(error) {
+  } catch (error) {
     console.error(error);
-    area.textContent="Erreur de chargement : "+error.message;
+    area.textContent = "Erreur de chargement : " + error.message;
   }
 }
 
 async function saveOrderChanges(id) {
   if (!isAdmin()) return alert("Accès refusé.");
 
-  const oldOrder=adminOrdersCache.get(id);
-  const status=$(`status-${id}`).value;
+  const oldOrder = adminOrdersCache.get(id);
+  const status = $(`status-${id}`).value;
 
-  if (status==="Payée — paiement vérifié" && !oldOrder.paymentVerified) {
+  if (status === "Payée — paiement vérifié" && !oldOrder.paymentVerified) {
     if (!confirm("As-tu réellement vérifié que le paiement est arrivé sur ton compte ?")) return;
   }
 
-  const carrier=$(`carrier-${id}`).value.trim();
-  const trackingNumber=$(`tracking-${id}`).value.trim();
-  const trackingStatus=$(`trackstatus-${id}`).value.trim();
-  const trackingLocation=$(`location-${id}`).value.trim();
-  const estimatedDelivery=$(`delivery-${id}`).value.trim();
+  const carrier = $(`carrier-${id}`).value.trim();
+  const trackingNumber = $(`tracking-${id}`).value.trim();
+  const trackingStatus = $(`trackstatus-${id}`).value.trim();
+  const trackingLocation = $(`location-${id}`).value.trim();
+  const estimatedDelivery = $(`delivery-${id}`).value.trim();
 
   try {
-    await updateDoc(doc(db,"orders",id),{
+    await updateDoc(doc(db, "orders", id), {
       status,
-      paymentVerified:status==="Payée — paiement vérifié",
-      carrier,trackingNumber,trackingStatus,trackingLocation,
+      paymentVerified: status === "Payée — paiement vérifié",
+      carrier,
+      trackingNumber,
+      trackingStatus,
+      trackingLocation,
       estimatedDelivery,
-      updatedAt:serverTimestamp()
+      updatedAt: serverTimestamp()
     });
 
     const trackingChanged =
-      trackingNumber !== (oldOrder.trackingNumber||"") ||
-      trackingStatus !== (oldOrder.trackingStatus||"") ||
-      trackingLocation !== (oldOrder.trackingLocation||"") ||
-      estimatedDelivery !== (oldOrder.estimatedDelivery||"") ||
-      carrier !== (oldOrder.carrier||"");
+      trackingNumber !== (oldOrder.trackingNumber || "") ||
+      trackingStatus !== (oldOrder.trackingStatus || "") ||
+      trackingLocation !== (oldOrder.trackingLocation || "") ||
+      estimatedDelivery !== (oldOrder.estimatedDelivery || "") ||
+      carrier !== (oldOrder.carrier || "");
 
     if (trackingChanged && (trackingNumber || trackingStatus)) {
-      const sent=await sendEmail(TEMPLATE_TRACKING,{
-        to_email:oldOrder.customerEmail,
-        customer_name:oldOrder.customerName,
-        order_id:id,
+      const sent = await sendEmail(TEMPLATE_TRACKING, {
+        to_email: oldOrder.customerEmail,
+        customer_name: oldOrder.customerName,
+        order_id: id,
         status,
         carrier,
-        tracking_number:trackingNumber,
-        tracking_status:trackingStatus,
-        tracking_location:trackingLocation,
-        estimated_delivery:estimatedDelivery
+        tracking_number: trackingNumber,
+        tracking_status: trackingStatus,
+        tracking_location: trackingLocation,
+        estimated_delivery: estimatedDelivery
       });
 
-      alert(sent?"Commande enregistrée et e-mail de suivi envoyé.":"Commande enregistrée, mais e-mail non envoyé. Vérifie EmailJS.");
+      alert(
+        sent
+          ? "Commande enregistrée et e-mail de suivi envoyé."
+          : "Commande enregistrée, mais e-mail non envoyé. Vérifie EmailJS."
+      );
     } else {
       alert("Commande mise à jour.");
     }
 
     await renderAdmin();
-  } catch(error) {
+  } catch (error) {
     console.error(error);
-    alert("Erreur : "+error.message);
+    alert("Erreur : " + error.message);
   }
 }
 
-/* DEMANDE DE PRODUIT */
-
-$("request-form").addEventListener("submit",async event=>{
-  event.preventDefault();
-
-  const form=new FormData(event.currentTarget);
-
-  const request={
-    name:String(form.get("name")||"").trim(),
-    email:String(form.get("email")||"").trim(),
-    brand:String(form.get("brand")||"").trim(),
-    product:String(form.get("product")||"").trim(),
-    description:String(form.get("description")||"").trim(),
-    createdAt:serverTimestamp()
-  };
-
-  if (!request.name || !request.email || !request.brand || !request.product) {
-    $("request-message").textContent="Complète les champs obligatoires.";
-    return;
-  }
-
-  try {
-    await addDoc(collection(db,"productRequests"),request);
-
-    const sent=await sendEmail(TEMPLATE_PRODUCT_REQUEST,{
-      customer_name:request.name,
-      customer_email:request.email,
-      brand:request.brand,
-      product:request.product,
-      description:request.description
-    });
-
-    $("request-message").innerHTML=`
-      <div class="notice">
-        Ta demande a été enregistrée.
-        ${sent?"L'e-mail a été envoyé à POL BUY.":"L'e-mail n'a pas pu être envoyé. La demande reste enregistrée."}
-      </div>
-    `;
-
-    event.currentTarget.reset();
-  } catch(error) {
-    console.error(error);
-    $("request-message").textContent="Erreur : "+error.message;
-  }
-});
-
 /* OUVERTURE DU PANIER ET FERMETURE DES FENÊTRES */
 
-$("cart-open").addEventListener("click",()=>{
+$("cart-open")?.addEventListener("click", () => {
   renderCart();
   openOverlay("cart-overlay");
 });
@@ -786,24 +931,26 @@ function closeOverlay(id) {
   $(id)?.classList.remove("show");
 }
 
-document.querySelectorAll("[data-close]").forEach(button=>{
-  button.addEventListener("click",()=>closeOverlay(button.dataset.close));
+document.querySelectorAll("[data-close]").forEach(button => {
+  button.addEventListener("click", () =>
+    closeOverlay(button.dataset.close)
+  );
 });
 
-document.querySelectorAll(".overlay").forEach(overlay=>{
-  overlay.addEventListener("click",event=>{
-    if (event.target===overlay) overlay.classList.remove("show");
+document.querySelectorAll(".overlay").forEach(overlay => {
+  overlay.addEventListener("click", event => {
+    if (event.target === overlay) overlay.classList.remove("show");
   });
 });
 
 /* CONNEXION */
 
-onAuthStateChanged(auth,user=>{
-  currentUser=user;
+onAuthStateChanged(auth, user => {
+  currentUser = user;
 
-  $("admin-open").classList.toggle("hidden",!isAdmin());
+  $("admin-open")?.classList.toggle("hidden", !isAdmin());
 
-  if ($("account-overlay").classList.contains("show")) {
+  if ($("account-overlay")?.classList.contains("show")) {
     renderAccount();
   }
 });
