@@ -82,7 +82,9 @@ async function sendEmail(templateId, params) {
 
 /* CATALOGUE */
 
+
 const products = [
+  // ==================== NIKE ====================
   {
     id: "nike-aroswft",
     brand: "Nike",
@@ -131,8 +133,34 @@ const products = [
       },
       {
         color: "Vert menthe / bleu",
-        price: 7.83,
+        price: 6.42,
         images: [
+          "https://tonrunning.com/cdn/shop/files/CF4771F7-120D-4173-A1CD-130BB07D3885_2048x2048.png?v=1790045807",
+          "https://tonrunning.com/cdn/shop/files/593A4D9B-254F-4F7F-B050-DA47238642BA_2048x2048.png?v=1790045808"
+        ]
+      }
+    ],
+    sizes: ["XS","S","M","L","XL","XXL","XXXL"]
+  },
+  {
+    id: "nike-ensemble-division",
+    brand: "Nike",
+    name: "Ensemble Nike Division",
+    variants: [
+      {
+        color: "Noir",
+        price: 7.13,
+        images: [
+          "https://fast-shop.app/_next/image?url=https%3A%2F%2Fi.ibb.co%2F5hzqCm5P%2F05c9d4879eb3.jpg&w=1920&q=75",
+          "https://tonrunning.com/cdn/shop/files/FCF8F5AA-A5D3-47B5-A420-4518C27DAE1E_2048x2048.png?v=1790045779",
+          "https://tonrunning.com/cdn/shop/files/38214FDF-2C59-4BBE-A3CE-3884740D0C8E_2048x2048.png?v=1790045779"
+        ]
+      },
+      {
+        color: "Noir et menthe / bleu",
+        price: 12.00,
+        images: [
+          "https://fast-shop.app/_next/image?url=https%3A%2F%2Fi.ibb.co%2F5hzqCm5P%2F05c9d4879eb3.jpg&w=1920&q=75",
           "https://tonrunning.com/cdn/shop/files/CF4771F7-120D-4173-A1CD-130BB07D3885_2048x2048.png?v=1790045807",
           "https://tonrunning.com/cdn/shop/files/593A4D9B-254F-4F7F-B050-DA47238642BA_2048x2048.png?v=1790045808"
         ]
@@ -147,22 +175,96 @@ const products = [
     price: 5.35,
     color: "Noir",
     images: [
+      "https://i1.t4s.cz/products/dh1483-010/nike-phenom-elite-tokyo-men-s-knit-running-pants-381819-dh1483-011-960.webp",
       "https://i1.t4s.cz/products/dh1483-010/nike-phenom-elite-tokyo-men-s-knit-running-pants-381819-dh1483-011-960.webp"
     ],
     sizes: ["XS","S","M","L","XL","XXL","XXXL"]
   },
   {
-    id: "cp-pullover",
-    brand: "C.P. Company",
-    name: "Pullover",
+    id: "nike-ete",
+    brand: "Nike",
+    name: "Ensemble Nike Running été — Short et T-shirt",
     variants: [
       {
-        color: "Noir", price: 6.34,
-        images: ["https://www.yoox.com/images/items/14/14493809pk_14_f.jpg?impolicy=crop&width=387&height=490"]
+        color: "Bleu",
+        price: 2.56,
+        images: [
+          "https://dropcityparis.com/cdn/shop/files/photopageproduitnikeetebleu.png?v=1782133267"
+        ]
       },
       {
-        color: "Blanc", price: 6.34,
-        images: ["https://www.yoox.com/images/items/14/14493809dp_14_f.jpg?impolicy=crop&width=387&height=490"]
+        color: "Rose",
+        price: 2.56,
+        images: [
+          "https://dropcityparis.com/cdn/shop/files/photo_page_produit_nike_ete_rose.png?v=1782133321"
+        ]
+      },
+      {
+        color: "Noir",
+        price: 2.56,
+        images: [
+          "https://dropcityparis.com/cdn/shop/files/photo_page_produit_nike_ete_noir.png?v=1782133367"
+        ]
+      }
+    ],
+    sizes: ["XS","S","M","L","XL","XXL","XXXL"]
+  },
+  {
+    id: "veste-bresil",
+    brand: "Nike",
+    name: "Veste Brésil Itaú",
+    variants: [
+      {
+        color: "Noir",
+        price: 14.45,
+        images: [
+          "https://maillotland.com/cdn/shop/files/WhatsApp_Image_2026-08-29_at_21.54.05.jpg?v=1788034462"
+        ]
+      },
+      {
+        color: "Rose",
+        price: 14.45,
+        images: [
+          "https://maillotland.com/cdn/shop/files/IMG-5587.jpg?v=1789297833"
+        ]
+      },
+      {
+        color: "Beige",
+        price: 14.45,
+        images: [
+          "https://maillotland.com/cdn/shop/files/Veste_Br_sil_Beige.jpg?v=1788034586"
+        ]
+      },
+      {
+        color: "Vert",
+        price: 14.45,
+        images: [
+          "https://maillotland.com/cdn/shop/files/5D7DC9F8-EAEE-41ED-B5F2-ACF023339549.jpg?v=1788030700"
+        ]
+      }
+    ],
+    sizes: ["XS","S","M","L","XL","XXL","XXXL"]
+  },
+
+  // ==================== C.P. COMPANY ====================
+  {
+    id: "cp-pullover",
+    brand: "C.P. Company",
+    name: "Pullover C.P. Company",
+    variants: [
+      {
+        color: "Noir",
+        price: 6.34,
+        images: [
+          "https://www.yoox.com/images/items/14/14493809dp_14_f.jpg?impolicy=crop&width=387&height=490"
+        ]
+      },
+      {
+        color: "Blanc",
+        price: 6.34,
+        images: [
+          "https://www.yoox.com/images/items/14/14493809pk_14_f.jpg?impolicy=crop&width=387&height=490"
+        ]
       }
     ],
     sizes: ["XS","S","M","L","XL","XXL","XXXL"]
@@ -178,18 +280,26 @@ const products = [
     ],
     sizes: ["Taille unique"]
   },
+
+  // ==================== STONE ISLAND ====================
   {
     id: "stone-pull",
     brand: "Stone Island",
     name: "Stone Island Pull",
     variants: [
       {
-        color: "Noir", price: 3.46,
-        images: ["https://cdn-images.farfetch-contents.com/25/37/28/56/25372856_75614274_1000.jpg?ov=lightgrey"]
+        color: "Noir",
+        price: 3.46,
+        images: [
+          "https://cdn-images.farfetch-contents.com/39/97/85/22/39978522_99261882_1000.jpg?ov=lightgrey"
+        ]
       },
       {
-        color: "Blanc", price: 3.46,
-        images: ["https://cdn-images.farfetch-contents.com/39/97/85/22/39978522_99261882_1000.jpg?ov=lightgrey"]
+        color: "Blanc",
+        price: 3.46,
+        images: [
+          "https://cdn-images.farfetch-contents.com/25/37/28/56/25372856_75614274_1000.jpg?ov=lightgrey"
+        ]
       }
     ],
     sizes: ["XS","S","M","L","XL","XXL","XXXL"]
@@ -200,55 +310,72 @@ const products = [
     name: "Stone Island Cotton T-shirt",
     variants: [
       {
-        color: "Noir", price: 1.46,
-        images: ["https://i.etsystatic.com/54513826/r/il/d0b87b/7533878689/il_1588xN.7533878689_639l.jpg"]
+        color: "Noir",
+        price: 1.46,
+        images: [
+          "https://i.etsystatic.com/54513826/r/il/d0b87b/7533878689/il_1588xN.7533878689_639l.jpg"
+        ]
       },
       {
-        color: "Blanc", price: 1.46,
-        images: ["https://cdn-images.farfetch-contents.com/25/37/28/56/25372856_75614301_1000.jpg?ov=lightgrey"]
+        color: "Blanc",
+        price: 1.46,
+        images: [
+          "https://cdn-images.farfetch-contents.com/25/37/28/56/25372856_75614301_1000.jpg?ov=lightgrey"
+        ]
       }
     ],
     sizes: ["XS","S","M","L","XL","XXL","XXXL"]
   },
+
+  // ==================== UNDER ARMOUR ====================
   {
     id: "ua-tech-boy",
     brand: "Under Armour",
     name: "UA Tech 2.0",
     variants: [
       {
-        color: "Blanc", price: 3.46,
+        color: "Blanc",
+        price: 3.46,
         images: [
-          "https://underarmour.scene7.com/is/image/Underarmour/PS1363284-100_HF?rp=standard-0pad%7Cpdp&qlt=85&bgc=f0f0f0&wid=800&hei=1000&op_usm=1.75%2C0.3%2C2%2C0"
+          "https://underarmour.scene7.com/is/image/Underarmour/PS1363284-100_HF?rp=standard-0pad%7Cpdp&qlt=85&bgc=f0f0f0&wid=800&hei=1000&op_usm=1.75%2C0.3%2C2%2C0",
+          "https://underarmour.scene7.com/is/image/Underarmour/PS1363284-100_HB?rp=standard-0pad%7Cpdp&qlt=85&bgc=f0f0f0&wid=800&hei=1000&op_usm=1.75%2C0.3%2C2%2C0"
         ]
       },
       {
-        color: "Bleu", price: 3.46,
+        color: "Bleu",
+        price: 3.46,
         images: [
-          "https://underarmour.scene7.com/is/image/Underarmour/PS1363284-482_HF?rp=standard-0pad%7Cpdp&qlt=85&bgc=f0f0f0&wid=800&hei=1000&op_usm=1.75%2C0.3%2C2%2C0"
+          "https://underarmour.scene7.com/is/image/Underarmour/PS1363284-482_HF?rp=standard-0pad%7Cpdp&qlt=85&bgc=f0f0f0&wid=800&hei=1000&op_usm=1.75%2C0.3%2C2%2C0",
+          "https://underarmour.scene7.com/is/image/Underarmour/PS1363284-482_HB?rp=standard-0pad%7Cpdp&qlt=85&bgc=f0f0f0&wid=800&hei=1000&op_usm=1.75%2C0.3%2C2%2C0"
         ]
       },
       {
-        color: "Noir motif", price: 3.46,
+        color: "Noir motif",
+        price: 3.46,
         images: [
-          "https://underarmour.scene7.com/is/image/Underarmour/PS1363284-003_HF?rp=standard-0pad%7Cpdp&qlt=85&bgc=f0f0f0&wid=800&hei=1000&op_usm=1.75%2C0.3%2C2%2C0"
+          "https://underarmour.scene7.com/is/image/Underarmour/PS1363284-003_HF?rp=standard-0pad%7Cpdp&qlt=85&bgc=f0f0f0&wid=800&hei=1000&op_usm=1.75%2C0.3%2C2%2C0",
+          "https://underarmour.scene7.com/is/image/Underarmour/PS1363284-003_HB?rp=standard-0pad%7Cpdp&qlt=85&bgc=f0f0f0&wid=800&hei=1000&op_usm=1.75%2C0.3%2C2%2C0"
         ]
       },
       {
-        color: "Orange", price: 3.46,
+        color: "Orange",
+        price: 3.46,
         images: [
           "https://underarmour.scene7.com/is/image/Underarmour/PS1363284-808_HB?rp=standard-0pad%7Cpdp&qlt=85&bgc=f0f0f0&wid=800&hei=1000&op_usm=1.75%2C0.3%2C2%2C0",
           "https://underarmour.scene7.com/is/image/Underarmour/PS1363284-808_HS?rp=standard-0pad%7Cpdp&qlt=85&bgc=f0f0f0&wid=800&hei=1000&op_usm=1.75%2C0.3%2C2%2C0"
         ]
       },
       {
-        color: "Rose", price: 3.46,
+        color: "Rose",
+        price: 3.46,
         images: [
           "https://underarmour.scene7.com/is/image/Underarmour/PS1363284-673_HB?rp=standard-0pad%7Cpdp&qlt=85&bgc=f0f0f0&wid=800&hei=1000&op_usm=1.75%2C0.3%2C2%2C0",
           "https://underarmour.scene7.com/is/image/Underarmour/PS1363284-673_HS?rp=standard-0pad%7Cpdp&qlt=85&bgc=f0f0f0&wid=800&hei=1000&op_usm=1.75%2C0.3%2C2%2C0"
         ]
       },
       {
-        color: "Noir sans motif", price: 3.46,
+        color: "Noir sans motif",
+        price: 3.46,
         images: [
           "https://underarmour.scene7.com/is/image/Underarmour/PS1363284-001_HB?rp=standard-0pad%7Cpdp&qlt=85&bgc=f0f0f0&wid=800&hei=1000&op_usm=1.75%2C0.3%2C2%2C0",
           "https://underarmour.scene7.com/is/image/Underarmour/PS1363284-001_HF?rp=standard-0pad%7Cpdp&qlt=85&bgc=f0f0f0&wid=800&hei=1000&op_usm=1.75%2C0.3%2C2%2C0"
@@ -270,6 +397,7 @@ const products = [
     sizes: ["XS","S","M","L","XL","XXL","XXXL"]
   }
 ];
+
 
 /* BOUTIQUE */
 
