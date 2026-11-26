@@ -1,442 +1,612 @@
-const PAYPAL_URL = "https://www.paypal.com/paypalme/SH0PNOVA/";
-const OWNER_EMAIL = "pc2alex.les@gmail.com";
 
-const $ = selector => document.querySelector(selector);
-const money = n => new Intl.NumberFormat("fr-FR", {
-  style:"currency", currency:"EUR"
-}).format(n);
+// POL BUY — Catalogue produits
+// Firebase + EmailJS
 
-function load(key, fallback) {
-  try { return JSON.parse(localStorage.getItem(key)) ?? fallback; }
-  catch { return fallback; }
-}
-function save(key, value) {
-  localStorage.setItem(key, JSON.stringify(value));
-}
-function esc(value) {
-  return String(value ?? "").replace(/[&<>"']/g, c => ({
-    "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
-  })[c]);
-}
+import { initializeApp } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-app.js";
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signOut,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/13.4.0/firebase-auth.js";
 
-let products = load("polbuy_products", [
-  {id:1,name:"Veste exemple",brand:"CP Company",price:79.99,category:"adulte",sizes:["S","M","L","XL"],stock:8},
-  {id:2,name:"Sweat exemple",brand:"Nike",price:49.99,category:"enfant",sizes:["S","M","L","XL"],stock:12},
-  {id:3,name:"T-shirt exemple",brand:"Stone Island",price:34.99,category:"adulte",sizes:["XS","S","M","L","XL","XXL","XXXL"],stock:6},
-  {id:4,name:"Ensemble exemple",brand:"Under Armour",price:39.99,category:"enfant",sizes:["S","M","L","XL"],stock:5}
-]);
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  getDocs,
+  doc,
+  updateDoc,
+  deleteDoc,
+  query,
+  where,
+  orderBy,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore.js";
 
-let cart = load("polbuy_cart", []);
-let selectedProduct = null;
-
-function persist() {
-  save("polbuy_products", products);
-  save("polbuy_cart", cart);
-}
-
-function openDrawer(id) {
-  $("#overlay").classList.add("open");
-  $(id).classList.add("open");
-}
-
-function closeAll() {
-  $("#overlay").classList.remove("open");
-  document.querySelectorAll(".drawer,.modal").forEach(el => el.classList.remove("open"));
-}
-
-$("#overlay").onclick = closeAll;
-document.addEventListener("click", e => {
-  if (e.target.matches("[data-close]")) closeAll();
-});
-
-$("#year").textContent = new Date().getFullYear();
-
-$("#cartBtn").onclick = () => {
-  renderCart();
-  openDrawer("#cartDrawer");
-};
-$("#accountBtn").onclick = () => openDrawer("#accountDrawer");
-
-function renderProducts(filter = "tous") {
-  const list = products.filter(p => filter === "tous" || p.category === filter);
-
-  $("#productGrid").innerHTML = list.length
-    ? list.map(p => `
-      <article class="product">
-        <div class="product-image"></div>
-        <div class="product-info">
-          <h3>${esc(p.name)}</h3>
-          <p>${esc(p.brand)} · ${p.category === "enfant" ? "Enfant" : "Adulte"}</p>
-          <div class="product-bottom">
-            <strong>${money(Number(p.price))}</strong>
-            <button data-product="${p.id}">Voir</button>
-          </div>
-        </div>
-      </article>
-    `).join("")
-    : "<p>Aucun article disponible.</p>";
-}
-
-$("#productGrid").addEventListener("click", e => {
-  const button = e.target.closest("[data-product]");
-  if (button) showProduct(Number(button.dataset.product));
-});
-
-$("#filterSelect").onchange = e => renderProducts(e.target.value);
-
-document.querySelectorAll("[data-filter]").forEach(link => {
-  link.onclick = () => {
-    $("#filterSelect").value = link.dataset.filter;
-    renderProducts(link.dataset.filter);
-  };
-});
-
-function showProduct(id) {
-  selectedProduct = products.find(p => p.id === id);
-  if (!selectedProduct) return;
-
-  const p = selectedProduct;
-
-  $("#productModalContent").innerHTML = `
-    <div class="eyebrow">${esc(p.brand)}</div>
-    <h2>${esc(p.name)}</h2>
-    <p>${money(Number(p.price))}</p>
-    <p class="subtitle">Stock disponible : ${Number(p.stock)}</p>
-    <p class="subtitle">Choisissez une taille :</p>
-    <div class="sizes">
-      ${p.sizes.map((size, i) => `
-        <button class="${i === 0 ? "selected" : ""}" data-size="${esc(size)}">${esc(size)}</button>
-      `).join("")}
-    </div>
-    <button class="btn" id="addToCart">Ajouter au panier</button>
-  `;
-
-  $("#productModalContent").querySelectorAll("[data-size]").forEach(button => {
-    button.onclick = () => {
-      $("#productModalContent").querySelectorAll("[data-size]").forEach(b => b.classList.remove("selected"));
-      button.classList.add("selected");
-    };
-  });
-
-  $("#addToCart").onclick = () => {
-    const size = $("#productModalContent .sizes .selected")?.dataset.size;
-    if (!size) return alert("Choisissez une taille.");
-
-    const existing = cart.find(x => x.id === p.id && x.size === size);
-    if (existing) existing.qty++;
-    else cart.push({id:p.id, size, qty:1});
-
-    persist();
-    renderCart();
-    closeAll();
-  };
-
-  $("#productModal").classList.add("open");
-}
-
-function getTotals() {
-  const subtotal = cart.reduce((total, item) => {
-    const product = products.find(p => p.id === item.id);
-    return total + (product ? Number(product.price) * item.qty : 0);
-  }, 0);
-
-  const shipping = subtotal >= 24.99 || subtotal === 0 ? 0 : 3.99;
-  return {subtotal, shipping, total:subtotal + shipping};
-}
-
-function renderCart() {
-  cart = cart.filter(item => products.some(p => p.id === item.id));
-  const totals = getTotals();
-
-  $("#cartItems").innerHTML = cart.length
-    ? cart.map(item => {
-      const p = products.find(x => x.id === item.id);
-      return `
-        <div class="cart-line">
-          <div>
-            <strong>${esc(p.name)}</strong><br>
-            ${esc(item.size)} · ${money(p.price)}
-            <br>
-            <button data-dec="${p.id}" data-size="${esc(item.size)}">−</button>
-            ${item.qty}
-            <button data-inc="${p.id}" data-size="${esc(item.size)}">+</button>
-          </div>
-          <strong>${money(p.price * item.qty)}</strong>
-        </div>
-      `;
-    }).join("")
-    : "<p>Votre panier est vide.</p>";
-
-  $("#subtotal").textContent = money(totals.subtotal);
-  $("#shippingPrice").textContent = totals.shipping ? money(totals.shipping) : "Offerte";
-  $("#grandTotal").textContent = money(totals.total);
-  $("#cartCount").textContent = cart.reduce((n, item) => n + item.qty, 0);
-}
-
-$("#cartItems").addEventListener("click", e => {
-  const button = e.target.closest("[data-inc],[data-dec]");
-  if (!button) return;
-
-  const id = Number(button.dataset.inc || button.dataset.dec);
-  const item = cart.find(x => x.id === id && x.size === button.dataset.size);
-  if (!item) return;
-
-  if (button.dataset.inc) item.qty++;
-  else item.qty--;
-
-  cart = cart.filter(x => x.qty > 0);
-  persist();
-  renderCart();
-});
-
-$("#checkoutBtn").onclick = () => {
-  if (!cart.length) return alert("Votre panier est vide.");
-  closeAll();
-  $("#checkoutModal").classList.add("open");
+// CONFIGURATION FIREBASE
+  apiKey: "AIzaSyCBpBr4GF24awpeBCHsO3r8kwo_tWHI07A",
+  authDomain: "pol-buy.firebaseapp.com",
+  projectId: "pol-buy",
+  storageBucket: "pol-buy.firebasestorage.app",
+  messagingSenderId: "751839715611",
+  appId: "1:751839715611:web:0a704117974f2e9c31f3be",
+  measurementId: "G-7795QRHNRP"
 };
 
-$("#paypalBtn").onclick = () => {
-  const fields = ["firstName","lastName","address","postal","city","country"];
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-  for (const id of fields) {
-    if (!$("#" + id).value.trim()) {
-      alert("Veuillez remplir tous les champs obligatoires.");
-      $("#" + id).focus();
-      return;
-    }
+const ADMIN_EMAIL = "pol.buy.off@gmail.com";
+
+// EMAILJS
+const EMAILJS_SERVICE = "service_u1tqxtl";
+const EMAILJS_NEW_ORDER = "template_8eqf2pr";
+const EMAILJS_TRACKING = "template_vr7m9e7";
+const EMAILJS_PUBLIC_KEY = "x2MvJKVWxwA6DG6Mg";
+
+// CATALOGUE POL BUY
+const products = [
+  {
+    id: "nike-1",
+    brand: "Nike",
+    name: "AROSWFT - Pantalon de survêtement",
+    price: 6.45,
+    images: [
+      "https://img01.ztat.net/article/spp-media-p1/69d82f5926a146be8b4be90ba840fe2e/09884b8ce44240ec9908a752214e2f36.jpg?imwidth=1800"
+    ],
+    colors: ["Noir"],
+    category: "Nike"
+  },
+  {
+    id: "nike-2",
+    brand: "Nike",
+    name: "Pantalon de running Nike Trail",
+    price: 7.35,
+    images: [
+      "https://media.intersport.fr/is/image/intersportfr/DX0855_0SX_FA?$product_grey$&layer=comp&fit=constrain,0&$produit_xl$&fmt=webp"
+    ],
+    colors: ["Noir"],
+    category: "Nike"
+  },
+  {
+    id: "nike-3",
+    brand: "Nike",
+    name: "Running Nike Division",
+    price: 9.56,
+    images: [
+      "https://fast-shop.app/_next/image?url=https%3A%2F%2Fi.ibb.co%2F5hzqCm5P%2F05c9d4879eb3.jpg&w=1920&q=75"
+    ],
+    colors: ["Noir"],
+    category: "Nike"
+  },
+  {
+    id: "nike-4",
+    brand: "Nike",
+    name: "Haut zip Nike Running Division",
+    price: 4,
+    images: [
+      "https://tonrunning.com/cdn/shop/files/FCF8F5AA-A5D3-47B5-A420-4518C27DAE1E_2048x2048.png?v=1790045779",
+      "https://tonrunning.com/cdn/shop/files/38214FDF-2C59-4BBE-A3CE-3884740D0C8E_2048x2048.png?v=1790045779"
+    ],
+    colors: ["Noir"],
+    category: "Nike"
+  },
+  {
+    id: "nike-5",
+    brand: "Nike",
+    name: "Ensemble Nike Division",
+    price: 11.13,
+    images: [
+      "https://fast-shop.app/_next/image?url=https%3A%2F%2Fi.ibb.co%2F5hzqCm5P%2F05c9d4879eb3.jpg&w=1920&q=75",
+      "https://tonrunning.com/cdn/shop/files/FCF8F5AA-A5D3-47B5-A420-4518C27DAE1E_2048x2048.png?v=1790045779",
+      "https://tonrunning.com/cdn/shop/files/38214FDF-2C59-4BBE-A3CE-3884740D0C8E_2048x2048.png?v=1790045779"
+    ],
+    colors: ["Noir"],
+    category: "Nike"
+  },
+  {
+    id: "nike-6",
+    brand: "Nike",
+    name: "Ensemble Nike Division menthe",
+    price: 12,
+    images: [
+      "https://fast-shop.app/_next/image?url=https%3A%2F%2Fi.ibb.co%2F5hzqCm5P%2F05c9d4879eb3.jpg&w=1920&q=75",
+      "https://tonrunning.com/cdn/shop/files/CF4771F7-120D-4173-A1CD-130BB07D3885_2048x2048.png?v=1790045807",
+      "https://tonrunning.com/cdn/shop/files/593A4D9B-254F-4F7F-B050-DA47238642BA_2048x2048.png?v=1790045808"
+    ],
+    colors: ["Noir et menthe"],
+    category: "Nike"
+  },
+  {
+    id: "nike-7",
+    brand: "Nike",
+    name: "Haut zip Nike Running Division menthe",
+    price: 6.42,
+    images: [
+      "https://tonrunning.com/cdn/shop/files/CF4771F7-120D-4173-A1CD-130BB07D3885_2048x2048.png?v=1790045807",
+      "https://tonrunning.com/cdn/shop/files/593A4D9B-254F-4F7F-B050-DA47238642BA_2048x2048.png?v=1790045808"
+    ],
+    colors: ["Menthe"],
+    category: "Nike"
+  },
+  {
+    id: "nike-8",
+    brand: "Nike",
+    name: "Pantalon Nike Phenom Elite Tokyo",
+    price: 5.35,
+    images: [
+      "https://i1.t4s.cz/products/dh1483-010/nike-phenom-elite-tokyo-men-s-knit-running-pants-381819-dh1483-011-960.webp"
+    ],
+    colors: ["Noir"],
+    category: "Nike"
+  },
+  {
+    id: "nike-9",
+    brand: "Nike",
+    name: "Ensemble Nike Running été",
+    price: null,
+    images: [
+      "https://dropcityparis.com/cdn/shop/files/photopageproduitnikeetebleu.png?v=1782133267",
+      "https://dropcityparis.com/cdn/shop/files/photo_page_produit_nike_ete_rose.png?v=1782133321",
+      "https://dropcityparis.com/cdn/shop/files/photo_page_produit_nike_ete_noir.png?v=1782133367"
+    ],
+    colors: ["Bleu", "Rose", "Noir"],
+    category: "Nike",
+    priceToSet: true
+  },
+  {
+    id: "nike-10",
+    brand: "Nike",
+    name: "Veste Brésil Itaú",
+    price: 14.45,
+    images: [
+      "https://maillotland.com/cdn/shop/files/WhatsApp_Image_2026-08-29_at_21.54.05.jpg?v=1788034462",
+      "https://maillotland.com/cdn/shop/files/IMG-5587.jpg?v=1789297833",
+      "https://maillotland.com/cdn/shop/files/Veste_Br_sil_Beige.jpg?v=1788034586",
+      "https://maillotland.com/cdn/shop/files/5D7DC9F8-EAEE-41ED-B5F2-ACF023339549.jpg?v=1788030700"
+    ],
+    colors: ["Noir", "Rose", "Beige", "Vert"],
+    category: "Nike"
+  },
+  {
+    id: "cp-1",
+    brand: "C.P. Company",
+    name: "C.P. Company Pullover",
+    price: 6.34,
+    images: [
+      "https://www.yoox.com/images/items/14/14493809pk_14_f.jpg?impolicy=crop&width=387&height=490",
+      "https://www.yoox.com/images/items/14/14493809dp_14_f.jpg?impolicy=crop&width=387&height=490"
+    ],
+    colors: ["Noir", "Blanc"],
+    category: "C.P. Company"
+  },
+  {
+    id: "cp-2",
+    brand: "C.P. Company",
+    name: "C.P. Company Bonnet en merinos",
+    price: 4.86,
+    images: [
+      "https://d3vfig6e0r0snz.cloudfront.net/rcYjnYuenaTH5vyDF/images/products/a71a15cceb4196f36208123c79023614.jpg"
+    ],
+    colors: ["Selon disponibilité"],
+    category: "C.P. Company"
+  },
+  {
+    id: "stone-1",
+    brand: "Stone Island",
+    name: "Stone Island - Produit noir et blanc",
+    price: null,
+    images: [
+      "https://cdn-images.farfetch-contents.com/25/37/28/56/25372856_75614274_1000.jpg?ov=lightgrey",
+      "https://cdn-images.farfetch-contents.com/39/97/85/22/39978522_99261882_1000.jpg?ov=lightgrey"
+    ],
+    colors: ["Noir", "Blanc"],
+    category: "Stone Island",
+    priceToSet: true
+  },
+  {
+    id: "stone-2",
+    brand: "Stone Island",
+    name: "Stone Island Cotton T-shirt",
+    price: null,
+    images: [
+      "https://i.etsystatic.com/54513826/r/il/d0b87b/7533878689/il_1588xN.7533878689_639l.jpg",
+      "https://cdn-images.farfetch-contents.com/25/37/28/56/25372856_75614301_1000.jpg?ov=lightgrey"
+    ],
+    colors: ["Noir", "Blanc"],
+    category: "Stone Island",
+    priceToSet: true
+  },
+  {
+    id: "ua-1",
+    brand: "Under Armour",
+    name: "UA Tech pour fille",
+    price: 1.54,
+    images: [],
+    colors: ["Noir", "Rose"],
+    category: "Under Armour"
+  },
+  {
+    id: "ua-2",
+    brand: "Under Armour",
+    name: "UA Tech 2.0 pour garçon",
+    price: 3.46,
+    images: [
+      "https://underarmour.scene7.com/is/image/Underarmour/PS1363284-100_HF?rp=standard-0pad%7Cpdp&qlt=85&bgc=f0f0f0&wid=800&hei=1000&op_usm=1.75%2C0.3%2C2%2C0",
+      "https://underarmour.scene7.com/is/image/Underarmour/PS1363284-100_HB?rp=standard-0pad%7Cpdp&qlt=85&bgc=f0f0f0&wid=800&hei=1000&op_usm=1.75%2C0.3%2C2%2C0",
+      "https://underarmour.scene7.com/is/image/Underarmour/PS1363284-482_HF?rp=standard-0pad%7Cpdp&qlt=85&bgc=f0f0f0&wid=800&hei=1000&op_usm=1.75%2C0.3%2C2%2C0",
+      "https://underarmour.scene7.com/is/image/Underarmour/PS1363284-482_HB?rp=standard-0pad%7Cpdp&qlt=85&bgc=f0f0f0&wid=800&hei=1000&op_usm=1.75%2C0.3%2C2%2C0",
+      "https://underarmour.scene7.com/is/image/Underarmour/PS1363284-003_HF?rp=standard-0pad%7Cpdp&qlt=85&bgc=f0f0f0&wid=800&hei=1000&op_usm=1.75%2C0.3%2C2%2C0",
+      "https://underarmour.scene7.com/is/image/Underarmour/PS1363284-003_HB?rp=standard-0pad%7Cpdp&qlt=85&bgc=f0f0f0&wid=800&hei=1000&op_usm=1.75%2C0.3%2C2%2C0",
+      "https://underarmour.scene7.com/is/image/Underarmour/PS1363284-808_HB?rp=standard-0pad%7Cpdp&qlt=85&bgc=f0f0f0&wid=800&hei=1000&op_usm=1.75%2C0.3%2C2%2C0",
+      "https://underarmour.scene7.com/is/image/Underarmour/PS1363284-808_HS?rp=standard-0pad%7Cpdp&qlt=85&bgc=f0f0f0&wid=800&hei=1000&op_usm=1.75%2C0.3%2C2%2C0",
+      "https://underarmour.scene7.com/is/image/Underarmour/PS1363284-673_HB?rp=standard-0pad%7Cpdp&qlt=85&bgc=f0f0f0&wid=800&hei=1000&op_usm=1.75%2C0.3%2C2%2C0",
+      "https://underarmour.scene7.com/is/image/Underarmour/PS1363284-673_HS?rp=standard-0pad%7Cpdp&qlt=85&bgc=f0f0f0&wid=800&hei=1000&op_usm=1.75%2C0.3%2C2%2C0",
+      "https://underarmour.scene7.com/is/image/Underarmour/PS1363284-001_HB?rp=standard-0pad%7Cpdp&qlt=85&bgc=f0f0f0&wid=800&hei=1000&op_usm=1.75%2C0.3%2C2%2C0",
+      "https://underarmour.scene7.com/is/image/Underarmour/PS1363284-001_HF?rp=standard-0pad%7Cpdp&qlt=85&bgc=f0f0f0&wid=800&hei=1000&op_usm=1.75%2C0.3%2C2%2C0"
+    ],
+    colors: ["Blanc", "Bleu", "Noir motif orange", "Rose", "Noir sans motif"],
+    category: "Under Armour"
+  },
+  {
+    id: "ua-3",
+    brand: "Under Armour",
+    name: "UA Storm ColdGear Infrared Shield 2.0",
+    price: 17.99,
+    images: [
+      "https://underarmour.scene7.com/is/image/Underarmour/V5-1371587-002_FC?rp=standard-0pad%7Cpdp&qlt=85&bgc=f0f0f0&wid=800&hei=1000&op_usm=1.75%2C0.3%2C2%2C0",
+      "https://underarmour.scene7.com/is/image/Underarmour/V5-1371587-002_BC?rp=standard-0pad%7Cpdp&qlt=85&bgc=f0f0f0&wid=800&hei=1000&op_usm=1.75%2C0.3%2C2%2C0"
+    ],
+    colors: ["Noir"],
+    category: "Under Armour"
   }
+];
 
-  const totals = getTotals();
-  const order = {
-    id:"PB-" + Date.now(),
-    date:new Date().toISOString(),
-    items:cart,
-    subtotal:totals.subtotal,
-    shipping:totals.shipping,
-    total:totals.total,
-    address:Object.fromEntries(
-      ["firstName","lastName","address","postal","city","country","phone"]
-      .map(id => [id, $("#" + id).value.trim()])
-    ),
-    status:"En attente de vérification du paiement"
-  };
+// TAILLES
+const adultSizes = ["XS", "S", "M", "L", "XL", "XXL", "XXXL"];
+const childSizes = ["S", "M", "L", "XL"];
+const shoeSizes = [
+  "36", "36.5", "37", "37.5", "38", "38.5",
+  "39", "39.5", "40", "40.5", "41", "41.5",
+  "42", "42.5", "43"
+];
 
-  const orders = load("polbuy_orders", []);
-  orders.unshift(order);
-  save("polbuy_orders", orders);
+// PANIER LOCAL
+let cart = JSON.parse(localStorage.getItem("polbuy_cart") || "[]");
 
-  const amount = totals.total.toFixed(2);
-  window.open(PAYPAL_URL + amount, "_blank", "noopener");
-
-  alert("Commande enregistrée dans cette démonstration. Le paiement doit être vérifié dans PayPal avant de confirmer la commande.");
-
-  cart = [];
-  persist();
-  renderCart();
-  closeAll();
-};
-
-$("#demoLogin").onclick = () => {
-  const email = $("#accountEmail").value.trim();
-  if (!email) return alert("Entrez votre adresse e-mail.");
-
-  save("polbuy_demo_user", {email});
-  $("#accountInfo").innerHTML = `<p class="notice">Session de démonstration : ${esc(email)}</p>`;
-  alert("Connexion de démonstration uniquement. Firebase sera nécessaire pour une vraie connexion.");
-};
-
-$("#googleLogin").onclick = () => {
-  alert("La connexion Google sera activée après configuration de Firebase.");
-};
-
-function showForm(title, fields, submitText, handler) {
-  $("#formModalContent").innerHTML = `
-    <h2>${title}</h2>
-    ${fields}
-    <button class="btn" id="formSubmit">${submitText}</button>
-  `;
-
-  $("#formSubmit").onclick = () => {
-    if (handler()) closeAll();
-  };
-
-  $("#formModal").classList.add("open");
+function saveCart() {
+  localStorage.setItem("polbuy_cart", JSON.stringify(cart));
 }
 
-$("#requestProductBtn").onclick = () => showForm(
-  "Demander un produit",
-  `
-    <div class="field"><label>Marque</label><input id="rqBrand"></div>
-    <div class="field"><label>Nom du produit</label><input id="rqName"></div>
-    <div class="field"><label>Description ou lien</label><textarea id="rqDesc"></textarea></div>
-    <div class="field"><label>Votre e-mail</label><input id="rqEmail" type="email"></div>
-  `,
-  "Envoyer la demande",
-  () => {
-    const request = {
-      brand:$("#rqBrand").value,
-      name:$("#rqName").value,
-      description:$("#rqDesc").value,
-      email:$("#rqEmail").value,
-      date:new Date().toISOString()
-    };
-
-    if (!request.brand || !request.name || !request.email) {
-      alert("Remplissez les champs obligatoires.");
-      return false;
-    }
-
-    const requests = load("polbuy_requests", []);
-    requests.unshift(request);
-    save("polbuy_requests", requests);
-
-    alert("Demande enregistrée localement. L'envoi réel à " + OWNER_EMAIL + " nécessitera un service e-mail.");
-    return true;
-  }
-);
-
-$("#refundBtn").onclick = () => showForm(
-  "Demander un remboursement",
-  `
-    <div class="field"><label>Numéro de commande</label><input id="rfOrder"></div>
-    <div class="field"><label>Motif</label>
-      <select id="rfReason">
-        <option>Article non reçu</option>
-        <option>Article défectueux</option>
-        <option>Mauvaise taille</option>
-        <option>Autre</option>
-      </select>
-    </div>
-    <div class="field"><label>Détails</label><textarea id="rfDetails"></textarea></div>
-    <div class="field"><label>Votre e-mail</label><input id="rfEmail" type="email"></div>
-  `,
-  "Envoyer la demande",
-  () => {
-    const request = {
-      order:$("#rfOrder").value,
-      reason:$("#rfReason").value,
-      details:$("#rfDetails").value,
-      email:$("#rfEmail").value,
-      date:new Date().toISOString(),
-      status:"À examiner"
-    };
-
-    if (!request.order || !request.email) {
-      alert("Indiquez la commande et votre e-mail.");
-      return false;
-    }
-
-    const refunds = load("polbuy_refunds", []);
-    refunds.unshift(request);
-    save("polbuy_refunds", refunds);
-
-    alert("Demande enregistrée. Le vendeur devra l'examiner.");
-    return true;
-  }
-);
-
-$("#adminLoginBtn").onclick = () => {
-  const email = prompt("Adresse e-mail administrateur :");
-
-  if (email !== OWNER_EMAIL) {
-    alert("Accès refusé.");
+function addToCart(productId, size, color) {
+  const product = products.find(p => p.id === productId);
+  if (!product || product.price == null) {
+    alert("Prix indisponible pour ce produit.");
     return;
   }
 
-  $("#adminArea").classList.add("open");
-  closeAll();
-  renderAdmin();
-  $("#adminArea").scrollIntoView({behavior:"smooth"});
-};
+  cart.push({
+    productId,
+    name: product.name,
+    price: product.price,
+    size,
+    color,
+    quantity: 1
+  });
 
-$("#addProductBtn").onclick = () => showForm(
-  "Ajouter un produit",
-  `
-    <div class="field"><label>Nom</label><input id="pName"></div>
-    <div class="field"><label>Marque</label>
-      <select id="pBrand">
-        <option>CP Company</option>
-        <option>Stone Island</option>
-        <option>Nike</option>
-        <option>Under Armour</option>
-      </select>
-    </div>
-    <div class="field"><label>Prix (€)</label><input id="pPrice" type="number" min="0" step="0.01"></div>
-    <div class="field"><label>Collection</label>
-      <select id="pCategory">
-        <option value="adulte">Adulte</option>
-        <option value="enfant">Enfant</option>
-      </select>
-    </div>
-    <div class="field"><label>Tailles séparées par des virgules</label><input id="pSizes" value="S, M, L, XL"></div>
-    <div class="field"><label>Stock</label><input id="pStock" type="number" min="0" value="1"></div>
-  `,
-  "Enregistrer le produit",
-  () => {
-    const product = {
-      id:Date.now(),
-      name:$("#pName").value,
-      brand:$("#pBrand").value,
-      price:Number($("#pPrice").value),
-      category:$("#pCategory").value,
-      sizes:$("#pSizes").value.split(",").map(x => x.trim()).filter(Boolean),
-      stock:Number($("#pStock").value)
-    };
-
-    if (!product.name || product.price <= 0 || !product.sizes.length) {
-      alert("Complétez le nom, le prix et les tailles.");
-      return false;
-    }
-
-    products.unshift(product);
-    persist();
-    renderProducts($("#filterSelect").value);
-    renderAdmin();
-    return true;
-  }
-);
-
-$("#ordersBtn").onclick = () => {
-  const orders = load("polbuy_orders", []);
-
-  $("#adminContent").innerHTML = "<h3>Commandes</h3>" + (
-    orders.length
-      ? orders.map(order => `
-        <div class="admin-item">
-          <strong>${esc(order.id)}</strong><br>
-          ${esc(order.address.firstName)} ${esc(order.address.lastName)}<br>
-          ${esc(order.address.address)}, ${esc(order.address.postal)}
-          ${esc(order.address.city)}, ${esc(order.address.country)}<br>
-          Total : ${money(order.total)}<br>
-          Statut : ${esc(order.status)}
-        </div>
-      `).join("")
-      : "<p>Aucune commande.</p>"
-  );
-};
-
-function renderAdmin() {
-  $("#adminContent").innerHTML = "<h3>Produits</h3>" + products.map(p => `
-    <div class="admin-item">
-      <strong>${esc(p.name)}</strong> — ${money(p.price)}
-      · Stock : ${p.stock}
-      <br>
-      <button data-delete="${p.id}">Supprimer</button>
-    </div>
-  `).join("");
+  saveCart();
+  alert("Produit ajouté au panier !");
 }
 
-$("#adminContent").addEventListener("click", e => {
-  const button = e.target.closest("[data-delete]");
-  if (!button) return;
+function removeFromCart(index) {
+  cart.splice(index, 1);
+  saveCart();
+}
 
-  if (confirm("Supprimer cet article ?")) {
-    products = products.filter(p => p.id !== Number(button.dataset.delete));
-    persist();
-    renderProducts($("#filterSelect").value);
-    renderAdmin();
+function getCartTotal() {
+  return cart.reduce((total, item) => total + item.price * item.quantity, 0);
+}
+
+// AFFICHAGE DES PRODUITS
+function displayProducts(category = "all") {
+  const grid = document.querySelector("#product-grid");
+  if (!grid) return;
+
+  const filtered = category === "all"
+    ? products
+    : products.filter(p => p.category === category);
+
+  grid.innerHTML = filtered.map(product => `
+    <article class="product-card">
+      <div class="product-image">
+        ${
+          product.images.length
+            ? `<img src="${product.images[0]}" alt="${product.name}" loading="lazy">`
+            : `<div class="no-image">Image à ajouter</div>`
+        }
+      </div>
+      <h3>${product.name}</h3>
+      <p>${product.price == null ? "Prix à confirmer" : product.price.toFixed(2) + " €"}</p>
+      <p>Couleurs : ${product.colors.join(", ")}</p>
+      <select class="product-size" aria-label="Taille">
+        ${adultSizes.map(s => `<option value="${s}">${s}</option>`).join("")}
+      </select>
+      <select class="product-color" aria-label="Couleur">
+        ${product.colors.map(c => `<option value="${c}">${c}</option>`).join("")}
+      </select>
+      <button data-add="${product.id}" ${product.price == null ? "disabled" : ""}>
+        Ajouter au panier
+      </button>
+    </article>
+  `).join("");
+
+  grid.querySelectorAll("[data-add]").forEach(button => {
+    button.addEventListener("click", () => {
+      const card = button.closest(".product-card");
+      addToCart(
+        button.dataset.add,
+        card.querySelector(".product-size").value,
+        card.querySelector(".product-color").value
+      );
+    });
+  });
+}
+
+// AFFICHAGE PANIER
+function displayCart() {
+  const container = document.querySelector("#cart-lines");
+  if (!container) return;
+
+  container.innerHTML = cart.map((item, index) => `
+    <div class="cart-item">
+      <span>${item.name} — ${item.size} — ${item.color}</span>
+      <span>${item.price.toFixed(2)} €</span>
+      <button data-remove="${index}">Supprimer</button>
+    </div>
+  `).join("");
+
+  const total = getCartTotal();
+  const shipping = total >= 24.99 ? 0 : 3.99;
+
+  const totalElement = document.querySelector("#cart-total");
+  if (totalElement) {
+    totalElement.textContent =
+      `Total : ${(total + shipping).toFixed(2)} € (livraison ${shipping === 0 ? "offerte" : "3,99 €"})`;
   }
+
+  container.querySelectorAll("[data-remove]").forEach(button => {
+    button.addEventListener("click", () => {
+      removeFromCart(Number(button.dataset.remove));
+      displayCart();
+    });
+  });
+}
+
+// CONNEXION EMAIL
+async function register(email, password) {
+  return createUserWithEmailAndPassword(auth, email, password);
+}
+
+async function login(email, password) {
+  return signInWithEmailAndPassword(auth, email, password);
+}
+
+async function loginGoogle() {
+  const provider = new GoogleAuthProvider();
+  return signInWithPopup(auth, provider);
+}
+
+async function logout() {
+  await signOut(auth);
+}
+
+// COMMANDES
+async function createOrder(customerDetails) {
+  const user = auth.currentUser;
+  if (!user) throw new Error("Connecte-toi avant de commander.");
+  if (!cart.length) throw new Error("Ton panier est vide.");
+
+  const subtotal = getCartTotal();
+  const shipping = subtotal >= 24.99 ? 0 : 3.99;
+  const total = subtotal + shipping;
+
+  const order = {
+    userId: user.uid,
+    customerEmail: user.email,
+    customerName: customerDetails.name || "",
+    address: customerDetails.address || "",
+    items: cart,
+    subtotal,
+    shipping,
+    total,
+    status: "pending_payment_check",
+    paymentVerified: false,
+    createdAt: serverTimestamp()
+  };
+
+  const orderRef = await addDoc(collection(db, "orders"), order);
+
+  // Notification EmailJS
+  if (window.emailjs) {
+    try {
+      await window.emailjs.send(
+        EMAILJS_SERVICE,
+        EMAILJS_NEW_ORDER,
+        {
+          to_email: ADMIN_EMAIL,
+          order_id: orderRef.id,
+          customer_name: order.customerName,
+          customer_email: user.email,
+          items: cart.map(i => `${i.name} x${i.quantity}`).join(", "),
+          subtotal: subtotal.toFixed(2),
+          shipping: shipping.toFixed(2),
+          total: total.toFixed(2),
+          status: "Paiement à vérifier"
+        },
+        EMAILJS_PUBLIC_KEY
+      );
+    } catch (error) {
+      console.error("Email non envoyé :", error);
+    }
+  }
+
+  cart = [];
+  saveCart();
+  return orderRef.id;
+}
+
+// COMMANDES CLIENT
+async function getMyOrders() {
+  const user = auth.currentUser;
+  if (!user) return [];
+
+  const q = query(
+    collection(db, "orders"),
+    where("userId", "==", user.uid)
+  );
+
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
+// ADMIN : commandes
+async function getAllOrders() {
+  const user = auth.currentUser;
+  if (!user || user.email !== ADMIN_EMAIL) {
+    throw new Error("Accès administrateur refusé.");
+  }
+
+  const snapshot = await getDocs(collection(db, "orders"));
+  return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
+// ADMIN : validation manuelle du paiement
+async function verifyPayment(orderId) {
+  const user = auth.currentUser;
+  if (!user || user.email !== ADMIN_EMAIL) {
+    throw new Error("Accès administrateur refusé.");
+  }
+
+  await updateDoc(doc(db, "orders", orderId), {
+    paymentVerified: true,
+    status: "paid",
+    paymentVerifiedAt: serverTimestamp()
+  });
+}
+
+// ADMIN : annulation
+async function cancelOrder(orderId) {
+  const user = auth.currentUser;
+  if (!user || user.email !== ADMIN_EMAIL) {
+    throw new Error("Accès administrateur refusé.");
+  }
+
+  await updateDoc(doc(db, "orders", orderId), {
+    status: "cancelled",
+    cancelledAt: serverTimestamp()
+  });
+}
+
+// ADMIN : suivi livraison
+async function updateTracking(orderId, data) {
+  const user = auth.currentUser;
+  if (!user || user.email !== ADMIN_EMAIL) {
+    throw new Error("Accès administrateur refusé.");
+  }
+
+  await updateDoc(doc(db, "orders", orderId), {
+    carrier: data.carrier || "",
+    trackingNumber: data.trackingNumber || "",
+    trackingStatus: data.trackingStatus || "",
+    trackingLocation: data.trackingLocation || "",
+    estimatedDelivery: data.estimatedDelivery || "",
+    status: "shipped"
+  });
+}
+
+// DEMANDE PRODUIT
+async function requestProduct(data) {
+  const user = auth.currentUser;
+
+  return addDoc(collection(db, "productRequests"), {
+    userId: user ? user.uid : null,
+    email: data.email || (user ? user.email : ""),
+    brand: data.brand || "",
+    name: data.name || "",
+    description: data.description || "",
+    link: data.link || "",
+    createdAt: serverTimestamp()
+  });
+}
+
+// NOTIFICATIONS CLIENT
+async function createNotification(userId, message) {
+  return addDoc(collection(db, "notifications"), {
+    userId,
+    message,
+    read: false,
+    createdAt: serverTimestamp()
+  });
+}
+
+async function getMyNotifications() {
+  const user = auth.currentUser;
+  if (!user) return [];
+
+  const q = query(
+    collection(db, "notifications"),
+    where("userId", "==", user.uid)
+  );
+
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
+// INITIALISATION
+document.addEventListener("DOMContentLoaded", () => {
+  displayProducts();
+
+  const categoryFilter = document.querySelector("#category-filter");
+  if (categoryFilter) {
+    categoryFilter.addEventListener("change", e => {
+      displayProducts(e.target.value);
+    });
+  }
+
+  const cartButton = document.querySelector("#cart-open");
+  if (cartButton) {
+    cartButton.addEventListener("click", displayCart);
+  }
+
+  onAuthStateChanged(auth, user => {
+    document.body.dataset.loggedIn = user ? "true" : "false";
+  });
 });
 
-renderProducts();
-renderCart();
+// FONCTIONS ACCESSIBLES DEPUIS LE HTML
+window.POLBUY = {
+  products,
+  adultSizes,
+  childSizes,
+  shoeSizes,
+  displayProducts,
+  displayCart,
+  addToCart,
+  register,
+  login,
+  loginGoogle,
+  logout,
+  createOrder,
+  getMyOrders,
+  getAllOrders,
+  verifyPayment,
+  cancelOrder,
+  updateTracking,
+  requestProduct,
+  getMyNotifications
+};
