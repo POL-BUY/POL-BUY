@@ -34,15 +34,22 @@ const googleProvider = new GoogleAuthProvider();
 const ADMIN_EMAIL = "pol.buy.off@gmail.com";
 const PAYPAL_BASE = "https://paypal.me/BUYPOL";
 
+/* EMAILJS */
+
 const EMAIL_SERVICE_ID = "service_u1tqxtl";
-const EMAIL_PUBLIC_KEY = "x2MvJKVWxwA6DG6Mg";
-const TEMPLATE_TRACKING = "template_vr7m9e7";
-const TEMPLATE_PRODUCT_REQUEST = "template_e3c8luv";
+const EMAIL_PUBLIC_KEY = "sA0AhDl6nmEVFqpKr";
+
+const TEMPLATE_PRODUCT_REQUEST = "template_m54py2m";
+const TEMPLATE_TRACKING = "template_t0v2j7h";
 
 emailjs.init({ publicKey: EMAIL_PUBLIC_KEY });
 
+/* LIVRAISON */
+
 const SHIPPING_PRICE = 3.99;
 const FREE_SHIPPING_FROM = 24.99;
+
+/* VARIABLES GLOBALES */
 
 let currentUser = null;
 let cart = JSON.parse(localStorage.getItem("polbuy-cart") || "[]");
@@ -50,16 +57,27 @@ let activeProduct = null;
 let activeImageIndex = 0;
 let adminOrdersCache = new Map();
 
+/* OUTILS */
+
 const $ = id => document.getElementById(id);
-const money = n => Number(n).toFixed(2).replace(".", ",") + " €";
+
+const money = n =>
+  Number(n).toFixed(2).replace(".", ",") + " €";
+
 const isAdmin = () =>
   currentUser?.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase();
 
 function escapeHTML(value) {
   return String(value ?? "").replace(/[&<>"']/g, char => ({
-    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
   })[char]);
 }
+
+/* ENVOI EMAILJS */
 
 async function sendEmail(templateId, params) {
   try {
@@ -68,14 +86,18 @@ async function sendEmail(templateId, params) {
       templateId,
       params
     );
+
     console.log("EmailJS envoyé :", result);
     return true;
+
   } catch (error) {
     console.error("Erreur EmailJS :", error);
+
     alert(
       "Erreur EmailJS : " +
       (error?.text || error?.message || "Erreur inconnue")
     );
+
     return false;
   }
 }
