@@ -36,7 +36,6 @@ const PAYPAL_BASE = "https://paypal.me/BUYPOL";
 
 const EMAIL_SERVICE_ID = "service_u1tqxtl";
 const EMAIL_PUBLIC_KEY = "x2MvJKVWxwA6DG6Mg";
-const TEMPLATE_NEW_ORDER = "template_8eqf2pr";
 const TEMPLATE_TRACKING = "template_vr7m9e7";
 const TEMPLATE_PRODUCT_REQUEST = "template_e3c8luv";
 
