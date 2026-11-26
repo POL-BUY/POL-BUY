@@ -1,9 +1,8 @@
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-app.js";
 
 import {
   getFirestore, collection, addDoc, getDocs, doc, updateDoc,
-  query, where, orderBy, serverTimestamp
+  query, where, orderBy, serverTimestamp, deleteDoc
 } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore.js";
 
 import {
@@ -56,6 +55,7 @@ let cart = JSON.parse(localStorage.getItem("polbuy-cart") || "[]");
 let activeProduct = null;
 let activeImageIndex = 0;
 let adminOrdersCache = new Map();
+let adminReviewsCache = new Map();
 
 /* OUTILS */
 
@@ -103,7 +103,6 @@ async function sendEmail(templateId, params) {
 }
 
 /* CATALOGUE */
-
 
 const products = [
   // ==================== NIKE ====================
@@ -437,14 +436,19 @@ function renderProducts() {
 
   grid.innerHTML = products.map(product => {
     const variant = getVariants(product)[0];
+
     return `
       <article class="product-card">
-        <img src="${escapeHTML(variant.images[0])}"
+        <img
+          src="${escapeHTML(variant.images[0])}"
           alt="${escapeHTML(product.name)}"
-          data-product="${escapeHTML(product.id)}">
+          data-product="${escapeHTML(product.id)}"
+        >
+
         <h3>${escapeHTML(product.name)}</h3>
         <p>${escapeHTML(product.brand)}</p>
         <strong>${money(variant.price)}</strong>
+
         <button class="primary-btn" data-product="${escapeHTML(product.id)}">
           VOIR LE PRODUIT
         </button>
@@ -462,7 +466,9 @@ function renderProducts() {
 function openProduct(id) {
   activeProduct = products.find(product => product.id === id);
   activeImageIndex = 0;
+
   if (!activeProduct) return;
+
   renderProductDetail();
   openOverlay("product-overlay");
 }
@@ -475,27 +481,39 @@ function renderProductDetail() {
   $("product-detail").innerHTML = `
     <h2>${escapeHTML(product.name)}</h2>
     <p>${escapeHTML(product.brand)}</p>
-    <img class="product-detail-image" id="detail-image"
-      src="${escapeHTML(variant.images[0])}" alt="${escapeHTML(product.name)}">
+
+    <img
+      class="product-detail-image"
+      id="detail-image"
+      src="${escapeHTML(variant.images[0])}"
+      alt="${escapeHTML(product.name)}"
+    >
+
     <div class="detail-arrows">
       <button id="previous-image">← Précédente</button>
       <span id="image-position">1 / ${variant.images.length}</span>
       <button id="next-image">Suivante →</button>
     </div>
+
     <p><strong id="detail-price">${money(variant.price)}</strong></p>
+
     <label class="form-label">Couleur</label>
     <select class="form-field" id="detail-color">
-      ${variants.map((v,i) =>
+      ${variants.map((v, i) =>
         `<option value="${i}">${escapeHTML(v.color)}</option>`
       ).join("")}
     </select>
+
     <label class="form-label">Taille</label>
     <select class="form-field" id="detail-size">
-      ${(product.sizes || ["Taille unique"]).map(s =>
-        `<option>${escapeHTML(s)}</option>`
+      ${(product.sizes || ["Taille unique"]).map(size =>
+        `<option>${escapeHTML(size)}</option>`
       ).join("")}
     </select>
-    <button class="primary-btn" id="add-to-cart">AJOUTER AU PANIER</button>
+
+    <button class="primary-btn" id="add-to-cart">
+      AJOUTER AU PANIER
+    </button>
   `;
 
   $("detail-color").addEventListener("change", () => {
@@ -504,14 +522,21 @@ function renderProductDetail() {
   });
 
   $("previous-image").addEventListener("click", () => {
-    const images = getVariants(product)[Number($("detail-color").value)].images;
-    activeImageIndex = (activeImageIndex - 1 + images.length) % images.length;
+    const images =
+      getVariants(product)[Number($("detail-color").value)].images;
+
+    activeImageIndex =
+      (activeImageIndex - 1 + images.length) % images.length;
+
     updateProductImage();
   });
 
   $("next-image").addEventListener("click", () => {
-    const images = getVariants(product)[Number($("detail-color").value)].images;
+    const images =
+      getVariants(product)[Number($("detail-color").value)].images;
+
     activeImageIndex = (activeImageIndex + 1) % images.length;
+
     updateProductImage();
   });
 
@@ -519,16 +544,21 @@ function renderProductDetail() {
 }
 
 function updateProductImage() {
-  const variant = getVariants(activeProduct)[Number($("detail-color").value)];
+  const variant =
+    getVariants(activeProduct)[Number($("detail-color").value)];
+
   $("detail-image").src = variant.images[activeImageIndex];
   $("detail-price").textContent = money(variant.price);
+
   $("image-position").textContent =
     `${activeImageIndex + 1} / ${variant.images.length}`;
 }
 
 function addSelectedProductToCart() {
   const product = activeProduct;
-  const variant = getVariants(product)[Number($("detail-color").value)];
+  const variant =
+    getVariants(product)[Number($("detail-color").value)];
+
   const size = $("detail-size").value;
   const key = `${product.id}-${variant.color}-${size}`;
   const existing = cart.find(item => item.key === key);
@@ -557,12 +587,17 @@ function addSelectedProductToCart() {
 
 function cartSubtotal() {
   return cart.reduce(
-    (sum, item) => sum + Number(item.price) * Number(item.quantity), 0
+    (sum, item) =>
+      sum + Number(item.price) * Number(item.quantity),
+    0
   );
 }
 
 function shippingCost() {
-  if (!cart.length || cartSubtotal() >= FREE_SHIPPING_FROM) return 0;
+  if (!cart.length || cartSubtotal() >= FREE_SHIPPING_FROM) {
+    return 0;
+  }
+
   return SHIPPING_PRICE;
 }
 
@@ -572,10 +607,12 @@ function cartTotal() {
 
 function saveCart() {
   localStorage.setItem("polbuy-cart", JSON.stringify(cart));
+
   if ($("cart-count")) {
     $("cart-count").textContent =
       cart.reduce((sum, item) => sum + item.quantity, 0);
   }
+
   renderCart();
 }
 
@@ -594,11 +631,19 @@ function renderCart() {
     <div class="cart-line">
       <div>
         <strong>${escapeHTML(item.name)}</strong><br>
-        <small>${escapeHTML(item.color)} · Taille ${escapeHTML(item.size)}
-        · Qté ${Number(item.quantity)}</small><br>
+
+        <small>
+          ${escapeHTML(item.color)}
+          · Taille ${escapeHTML(item.size)}
+          · Qté ${Number(item.quantity)}
+        </small><br>
+
         <strong>${money(item.price * item.quantity)}</strong>
       </div>
-      <button class="small-btn" data-remove="${escapeHTML(item.key)}">Retirer</button>
+
+      <button class="small-btn" data-remove="${escapeHTML(item.key)}">
+        Retirer
+      </button>
     </div>
   `).join("");
 
@@ -615,7 +660,10 @@ function renderCart() {
 
   $("cart-total").innerHTML = `
     <p>Sous-total : <strong>${money(subtotal)}</strong></p>
-    <p>Livraison : <strong>${shipping === 0 ? "Offerte" : money(shipping)}</strong></p>
+    <p>
+      Livraison :
+      <strong>${shipping === 0 ? "Offerte" : money(shipping)}</strong>
+    </p>
     <h3>TOTAL : ${money(total)}</h3>
   `;
 
@@ -623,16 +671,30 @@ function renderCart() {
     <div class="notice">
       La commande reste en attente jusqu'à vérification réelle du paiement.
     </div>
+
     <label class="form-label">Adresse de livraison</label>
-    <textarea id="delivery-address" class="form-field"
-      placeholder="Nom, rue, code postal, ville, pays"></textarea>
+    <textarea
+      id="delivery-address"
+      class="form-field"
+      placeholder="Nom, rue, code postal, ville, pays"
+    ></textarea>
+
     <label class="form-label">Téléphone (facultatif)</label>
     <input id="delivery-phone" class="form-field">
-    <a class="primary-btn" style="display:block;text-align:center;text-decoration:none"
-      href="${PAYPAL_BASE}/${total.toFixed(2)}" target="_blank" rel="noopener">
+
+    <a
+      class="primary-btn"
+      style="display:block;text-align:center;text-decoration:none"
+      href="${PAYPAL_BASE}/${total.toFixed(2)}"
+      target="_blank"
+      rel="noopener"
+    >
       PAYER ${money(total)} AVEC PAYPAL
     </a>
-    <button class="primary-btn" id="place-order">ENREGISTRER MA COMMANDE</button>
+
+    <button class="primary-btn" id="place-order">
+      ENREGISTRER MA COMMANDE
+    </button>
   `;
 
   $("place-order").addEventListener("click", placeOrder);
@@ -645,12 +707,16 @@ async function placeOrder() {
     return;
   }
 
-  if (!cart.length) return alert("Ton panier est vide.");
+  if (!cart.length) {
+    return alert("Ton panier est vide.");
+  }
 
   const address = $("delivery-address").value.trim();
   const phone = $("delivery-phone").value.trim();
 
-  if (!address) return alert("Indique ton adresse de livraison.");
+  if (!address) {
+    return alert("Indique ton adresse de livraison.");
+  }
 
   const subtotal = Number(cartSubtotal().toFixed(2));
   const shipping = Number(shippingCost().toFixed(2));
@@ -680,7 +746,7 @@ async function placeOrder() {
   try {
     const result = await addDoc(collection(db, "orders"), order);
 
-    /* IMPORTANT : aucun e-mail n'est envoyé à la création de commande. */
+    /* Aucun e-mail n'est envoyé à la création de commande. */
 
     cart = [];
     saveCart();
@@ -693,6 +759,7 @@ async function placeOrder() {
     );
 
     openAccount();
+
   } catch (error) {
     console.error(error);
     alert("Erreur lors de l'enregistrement : " + error.message);
@@ -715,24 +782,40 @@ function renderAccount() {
   if (!currentUser) {
     area.innerHTML = `
       <h3>Connexion</h3>
+
       <label class="form-label">E-mail</label>
       <input id="auth-email" class="form-field" type="email">
+
       <label class="form-label">Mot de passe</label>
       <input id="auth-password" class="form-field" type="password">
-      <button class="primary-btn" id="login-btn">SE CONNECTER</button>
-      <button class="primary-btn" id="register-btn">CRÉER UN COMPTE</button>
-      <button class="primary-btn" id="google-btn">CONTINUER AVEC GOOGLE</button>
+
+      <button class="primary-btn" id="login-btn">
+        SE CONNECTER
+      </button>
+
+      <button class="primary-btn" id="register-btn">
+        CRÉER UN COMPTE
+      </button>
+
+      <button class="primary-btn" id="google-btn">
+        CONTINUER AVEC GOOGLE
+      </button>
+
       <div id="auth-error"></div>
     `;
 
     $("login-btn").addEventListener("click", () => emailAuth(false));
     $("register-btn").addEventListener("click", () => emailAuth(true));
     $("google-btn").addEventListener("click", googleLogin);
+
     return;
   }
 
   area.innerHTML = `
-    <p>Connecté avec : <strong>${escapeHTML(currentUser.email)}</strong></p>
+    <p>
+      Connecté avec :
+      <strong>${escapeHTML(currentUser.email)}</strong>
+    </p>
 
     <section class="account-section">
       <h3>Mes commandes</h3>
@@ -741,52 +824,78 @@ function renderAccount() {
 
     <section class="account-section">
       <h3>Demander un produit</h3>
-      <p>Tu recherches un article qui n'est pas dans la boutique ?
-      Envoie-nous ta demande ici,nous ajouterons l'article sous 24h.</p>
+
+      <p>
+        Tu recherches un article qui n'est pas dans la boutique ?
+        Envoie-nous ta demande ici, nous ajouterons l'article sous 24h.
+      </p>
 
       <form id="account-request-form">
         <label class="form-label">Ton nom</label>
-        <input class="form-field" name="name" required
-          value="${escapeHTML(currentUser.displayName || "")}">
+        <input
+          class="form-field"
+          name="name"
+          required
+          value="${escapeHTML(currentUser.displayName || "")}"
+        >
 
         <label class="form-label">Ton e-mail</label>
-        <input class="form-field" name="email" type="email" required
-          value="${escapeHTML(currentUser.email || "")}">
+        <input
+          class="form-field"
+          name="email"
+          type="email"
+          required
+          value="${escapeHTML(currentUser.email || "")}"
+        >
 
         <label class="form-label">Marque recherchée</label>
-        <input class="form-field" name="brand" required
-          placeholder="Ex : Nike, Adidas...">
+        <input
+          class="form-field"
+          name="brand"
+          required
+          placeholder="Ex : Nike, Adidas..."
+        >
 
         <label class="form-label">Nom du produit</label>
-        <input class="form-field" name="product" required
-          placeholder="Nom de l'article">
+        <input
+          class="form-field"
+          name="product"
+          required
+          placeholder="Nom de l'article"
+        >
 
         <label class="form-label">Description ou lien (facultatif)</label>
-        <textarea class="form-field" name="description"
-          placeholder="Décris le produit ou colle un lien"></textarea>
+        <textarea
+          class="form-field"
+          name="description"
+          placeholder="Décris le produit ou colle un lien"
+        ></textarea>
 
         <button class="primary-btn" type="submit">
           ENVOYER MA DEMANDE
         </button>
+
         <p id="account-request-message" role="status"></p>
       </form>
     </section>
 
-    <button class="primary-btn" id="logout-btn">SE DÉCONNECTER</button>
+    <button class="primary-btn" id="logout-btn">
+      SE DÉCONNECTER
+    </button>
   `;
 
   $("logout-btn").addEventListener("click", () => signOut(auth));
 
-  /* Le formulaire est maintenant dans le compte client. */
   const requestForm = $("account-request-form");
 
   requestForm.addEventListener("submit", async event => {
     event.preventDefault();
 
-    /* On conserve une référence au formulaire avant le await. */
     const formElement = event.currentTarget;
     const message = $("account-request-message");
-    const submitButton = formElement.querySelector('button[type="submit"]');
+    const submitButton =
+      formElement.querySelector('button[type="submit"]');
+
     const form = new FormData(formElement);
 
     const request = {
@@ -799,7 +908,12 @@ function renderAccount() {
       createdAt: serverTimestamp()
     };
 
-    if (!request.name || !request.email || !request.brand || !request.product) {
+    if (
+      !request.name ||
+      !request.email ||
+      !request.brand ||
+      !request.product
+    ) {
       message.textContent = "Complète les champs obligatoires.";
       return;
     }
@@ -819,18 +933,18 @@ function renderAccount() {
         description: request.description
       });
 
-      /* La demande est déjà sauvegardée dans Firestore. */
       formElement.reset();
 
       message.textContent = sent
         ? "Demande enregistrée et e-mail envoyé à POL BUY."
         : "Demande enregistrée dans ton compte, mais l'e-mail n'a pas été envoyé. POL BUY pourra retrouver la demande dans Firebase.";
 
-      /* Remet l'adresse e-mail du client après le reset. */
       formElement.elements.email.value = currentUser.email || "";
+
     } catch (error) {
       console.error("Erreur demande produit :", error);
       message.textContent = "Erreur : " + error.message;
+
     } finally {
       submitButton.disabled = false;
       submitButton.textContent = "ENVOYER MA DEMANDE";
@@ -845,12 +959,16 @@ async function emailAuth(register) {
   const password = $("auth-password").value;
 
   try {
-    if (!email || !password) throw new Error("Complète les champs.");
+    if (!email || !password) {
+      throw new Error("Complète les champs.");
+    }
+
     if (register) {
       await createUserWithEmailAndPassword(auth, email, password);
     } else {
       await signInWithEmailAndPassword(auth, email, password);
     }
+
   } catch (error) {
     $("auth-error").textContent = error.message;
   }
@@ -875,6 +993,7 @@ async function loadCustomerOrders() {
       collection(db, "orders"),
       where("userId", "==", currentUser.uid)
     );
+
     const snap = await getDocs(q);
     target.innerHTML = "";
 
@@ -886,32 +1005,54 @@ async function loadCustomerOrders() {
     snap.forEach(orderDoc => {
       const order = orderDoc.data();
       const div = document.createElement("div");
+
       div.className = "admin-order";
 
       div.innerHTML = `
         <div>
-          <strong>Commande ${escapeHTML(orderDoc.id.slice(0, 8))}</strong><br>
+          <strong>
+            Commande ${escapeHTML(orderDoc.id.slice(0, 8))}
+          </strong><br>
+
           <small>${escapeHTML(order.status)}</small><br>
-          <small>Transporteur : ${escapeHTML(order.carrier || "Non renseigné")}</small><br>
-          <small>Suivi : ${escapeHTML(order.trackingNumber || "Non renseigné")}</small><br>
+
+          <small>
+            Transporteur :
+            ${escapeHTML(order.carrier || "Non renseigné")}
+          </small><br>
+
+          <small>
+            Suivi :
+            ${escapeHTML(order.trackingNumber || "Non renseigné")}
+          </small><br>
+
           <small>${escapeHTML(order.trackingStatus || "")}</small><br>
-          <small>Livraison estimée : ${escapeHTML(order.estimatedDelivery || "Non renseignée")}</small>
+
+          <small>
+            Livraison estimée :
+            ${escapeHTML(order.estimatedDelivery || "Non renseignée")}
+          </small>
         </div>
+
         <strong>${money(order.total)}</strong>
       `;
 
       target.appendChild(div);
     });
+
   } catch (error) {
     console.error(error);
     target.textContent = "Impossible de charger les commandes.";
   }
 }
 
-/* ADMINISTRATION */
+/* ADMINISTRATION : COMMANDES ET AVIS */
 
 $("admin-open")?.addEventListener("click", async () => {
-  if (!isAdmin()) return alert("Accès réservé à l'administrateur.");
+  if (!isAdmin()) {
+    return alert("Accès réservé à l'administrateur.");
+  }
+
   openOverlay("admin-overlay");
   await renderAdmin();
 });
@@ -920,6 +1061,8 @@ async function renderAdmin() {
   if (!isAdmin()) return;
 
   const area = $("admin-content");
+  if (!area) return;
+
   area.innerHTML = "<p>Chargement...</p>";
 
   try {
@@ -930,19 +1073,13 @@ async function renderAdmin() {
     area.innerHTML = "";
     adminOrdersCache.clear();
 
-    if (snap.empty) {
-      area.textContent = "Aucune commande.";
-      return;
-    }
+    let ordersHTML = "";
 
     snap.forEach(orderDoc => {
       const o = orderDoc.data();
       const id = orderDoc.id;
-      adminOrdersCache.set(id, o);
 
-      const card = document.createElement("div");
-      card.className = "admin-order";
-      card.style.display = "block";
+      adminOrdersCache.set(id, o);
 
       const statuses = [
         "En attente de vérification du paiement",
@@ -953,63 +1090,444 @@ async function renderAdmin() {
         "Annulée"
       ];
 
-      card.innerHTML = `
-        <strong>Commande ${escapeHTML(id)}</strong>
-        <p>Client : ${escapeHTML(o.customerName)} — ${escapeHTML(o.customerEmail)}</p>
-        <p>Adresse : ${escapeHTML(o.address)}</p>
-        <p>Articles : ${(o.items || []).map(i =>
-          `${escapeHTML(i.name)} (${escapeHTML(i.color)}, ${escapeHTML(i.size)}) × ${Number(i.quantity)}`
-        ).join("<br>")}</p>
-        <p><strong>Total : ${money(o.total)}</strong></p>
-        <p>Paiement vérifié : ${o.paymentVerified ? "Oui" : "Non"}</p>
+      ordersHTML += `
+        <div class="admin-order" style="display:block">
+          <strong>Commande ${escapeHTML(id)}</strong>
 
-        <label class="form-label">Statut</label>
-        <select class="form-field" id="status-${id}">
-          ${statuses.map(s =>
-            `<option ${o.status === s ? "selected" : ""}>${escapeHTML(s)}</option>`
-          ).join("")}
-        </select>
+          <p>
+            Client :
+            ${escapeHTML(o.customerName)}
+            —
+            ${escapeHTML(o.customerEmail)}
+          </p>
 
-        <label class="form-label">Transporteur</label>
-        <input class="form-field" id="carrier-${id}" value="${escapeHTML(o.carrier || "")}">
+          <p>Adresse : ${escapeHTML(o.address)}</p>
 
-        <label class="form-label">Numéro de suivi</label>
-        <input class="form-field" id="tracking-${id}" value="${escapeHTML(o.trackingNumber || "")}">
+          <p>
+            Articles :
+            ${(o.items || []).map(i =>
+              `${escapeHTML(i.name)} (${escapeHTML(i.color)}, ${escapeHTML(i.size)}) × ${Number(i.quantity)}`
+            ).join("<br>")}
+          </p>
 
-        <label class="form-label">État du suivi</label>
-        <input class="form-field" id="trackstatus-${id}" value="${escapeHTML(o.trackingStatus || "")}">
+          <p><strong>Total : ${money(o.total)}</strong></p>
 
-        <label class="form-label">Localisation</label>
-        <input class="form-field" id="location-${id}" value="${escapeHTML(o.trackingLocation || "")}">
+          <p>
+            Paiement vérifié :
+            ${o.paymentVerified ? "Oui" : "Non"}
+          </p>
 
-        <label class="form-label">Livraison estimée</label>
-        <input class="form-field" id="delivery-${id}" value="${escapeHTML(o.estimatedDelivery || "")}">
+          <label class="form-label">Statut</label>
 
-        <button class="primary-btn" data-save="${id}">ENREGISTRER</button>
+          <select class="form-field" id="status-${escapeHTML(id)}">
+            ${statuses.map(s =>
+              `<option ${o.status === s ? "selected" : ""}>${escapeHTML(s)}</option>`
+            ).join("")}
+          </select>
+
+          <label class="form-label">Transporteur</label>
+          <input
+            class="form-field"
+            id="carrier-${escapeHTML(id)}"
+            value="${escapeHTML(o.carrier || "")}"
+          >
+
+          <label class="form-label">Numéro de suivi</label>
+          <input
+            class="form-field"
+            id="tracking-${escapeHTML(id)}"
+            value="${escapeHTML(o.trackingNumber || "")}"
+          >
+
+          <label class="form-label">État du suivi</label>
+          <input
+            class="form-field"
+            id="trackstatus-${escapeHTML(id)}"
+            value="${escapeHTML(o.trackingStatus || "")}"
+          >
+
+          <label class="form-label">Localisation</label>
+          <input
+            class="form-field"
+            id="location-${escapeHTML(id)}"
+            value="${escapeHTML(o.trackingLocation || "")}"
+          >
+
+          <label class="form-label">Livraison estimée</label>
+          <input
+            class="form-field"
+            id="delivery-${escapeHTML(id)}"
+            value="${escapeHTML(o.estimatedDelivery || "")}"
+          >
+
+          <button class="primary-btn" data-save="${escapeHTML(id)}">
+            ENREGISTRER
+          </button>
+        </div>
       `;
-
-      area.appendChild(card);
     });
+
+    area.innerHTML = `
+      <section>
+        <h3>Commandes (${snap.size})</h3>
+        ${ordersHTML || "<p>Aucune commande.</p>"}
+      </section>
+
+      <section class="account-section">
+        <h3>Gestion des avis</h3>
+
+        <p>
+          Crée des avis de test, mets des avis à la une
+          ou supprime les avis dont tu n'as plus besoin.
+        </p>
+
+        <div id="admin-reviews">
+          Chargement des avis...
+        </div>
+      </section>
+    `;
 
     area.querySelectorAll("[data-save]").forEach(button => {
       button.addEventListener("click", () =>
         saveOrderChanges(button.dataset.save)
       );
     });
+
+    await renderAdminReviews();
+
   } catch (error) {
     console.error(error);
-    area.textContent = "Erreur de chargement : " + error.message;
+    area.innerHTML =
+      "Erreur de chargement : " + escapeHTML(error.message);
   }
 }
 
+/* FORMULAIRE D'AJOUT D'AVIS DE TEST */
+
+function getTestReviewFormHTML() {
+  return `
+    <div class="account-section">
+      <h4>Ajouter un avis de test</h4>
+
+      <label class="form-label">Nom affiché</label>
+      <input
+        class="form-field"
+        id="test-review-name"
+        placeholder="Ex : Client test"
+        maxlength="60"
+      >
+
+      <label class="form-label">Note</label>
+      <select class="form-field" id="test-review-rating">
+        <option value="5">5 étoiles</option>
+        <option value="4">4 étoiles</option>
+        <option value="3">3 étoiles</option>
+        <option value="2">2 étoiles</option>
+        <option value="1">1 étoile</option>
+      </select>
+
+      <label class="form-label">Commentaire</label>
+      <textarea
+        class="form-field"
+        id="test-review-comment"
+        maxlength="1000"
+        placeholder="Écris ton avis de test..."
+      ></textarea>
+
+      <button class="primary-btn" id="create-test-review">
+        AJOUTER L'AVIS DE TEST
+      </button>
+
+      <p id="test-review-message" role="status"></p>
+    </div>
+  `;
+}
+
+/* AFFICHER LES AVIS DANS LE DASHBOARD */
+
+async function renderAdminReviews() {
+  const target = $("admin-reviews");
+
+  if (!target || !isAdmin()) return;
+
+  try {
+    const snap = await getDocs(collection(db, "reviews"));
+
+    adminReviewsCache.clear();
+
+    const reviews = snap.docs.map(reviewDoc => ({
+      id: reviewDoc.id,
+      ...reviewDoc.data()
+    }));
+
+    reviews.sort((a, b) => {
+      const dateA = a.createdAt?.toMillis?.() || 0;
+      const dateB = b.createdAt?.toMillis?.() || 0;
+      return dateB - dateA;
+    });
+
+    const featuredCount = reviews.filter(
+      review => review.featured === true
+    ).length;
+
+    reviews.forEach(review => {
+      adminReviewsCache.set(review.id, review);
+    });
+
+    target.innerHTML = `
+      ${getTestReviewFormHTML()}
+
+      <h4>Liste des avis (${reviews.length})</h4>
+
+      ${
+        reviews.length
+          ? `
+            <div class="reviews-grid">
+              ${reviews.map(review => {
+                const rating = Math.max(
+                  0,
+                  Math.min(5, Number(review.rating) || 0)
+                );
+
+                return `
+                  <article class="review-card">
+
+                    ${
+                      review.isTest
+                        ? '<div class="review-test-label">AVIS DE TEST</div>'
+                        : '<div class="review-test-label">AVIS CLIENT</div>'
+                    }
+
+                    <div class="stars">
+                      ${"★".repeat(rating)}${"☆".repeat(5 - rating)}
+                    </div>
+
+                    <strong>
+                      ${escapeHTML(review.name || "Client")}
+                    </strong>
+
+                    <p>${escapeHTML(review.comment || "")}</p>
+
+                    ${
+                      review.orderId
+                        ? `<small>Commande : ${escapeHTML(review.orderId)}</small>`
+                        : `<small>Avis ajouté depuis le dashboard</small>`
+                    }
+
+                    <p>
+                      ${
+                        review.featured
+                          ? "<strong>À la une</strong>"
+                          : "Non mis à la une"
+                      }
+                    </p>
+
+                    <div class="review-admin-actions">
+
+                      <button
+                        class="primary-btn"
+                        data-feature="${escapeHTML(review.id)}"
+                      >
+                        ${
+                          review.featured
+                            ? "RETIRER DE LA UNE"
+                            : "METTRE À LA UNE"
+                        }
+                      </button>
+
+                      <button
+                        class="primary-btn"
+                        data-delete-review="${escapeHTML(review.id)}"
+                      >
+                        SUPPRIMER
+                      </button>
+
+                    </div>
+
+                  </article>
+                `;
+              }).join("")}
+            </div>
+          `
+          : "<p>Aucun avis enregistré pour le moment.</p>"
+      }
+    `;
+
+    $("create-test-review")?.addEventListener(
+      "click",
+      addTestReview
+    );
+
+    target.querySelectorAll("[data-feature]").forEach(button => {
+      button.addEventListener("click", () => {
+        toggleFeaturedReview(
+          button.dataset.feature,
+          featuredCount
+        );
+      });
+    });
+
+    target.querySelectorAll("[data-delete-review]").forEach(button => {
+      button.addEventListener("click", () => {
+        removeReview(button.dataset.deleteReview);
+      });
+    });
+
+  } catch (error) {
+    console.error("Erreur chargement avis :", error);
+
+    target.innerHTML = `
+      ${getTestReviewFormHTML()}
+      <p>
+        Impossible de charger les avis :
+        ${escapeHTML(error.message)}
+      </p>
+    `;
+
+    $("create-test-review")?.addEventListener(
+      "click",
+      addTestReview
+    );
+  }
+}
+
+/* CRÉER UN AVIS DE TEST */
+
+async function addTestReview() {
+  if (!isAdmin()) {
+    return alert("Accès refusé.");
+  }
+
+  const name = $("test-review-name")?.value.trim();
+  const rating = Number($("test-review-rating")?.value);
+  const comment = $("test-review-comment")?.value.trim();
+
+  const message = $("test-review-message");
+  const button = $("create-test-review");
+
+  if (!name || !comment) {
+    if (message) {
+      message.textContent = "Remplis le nom et le commentaire.";
+    }
+    return;
+  }
+
+  if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
+    if (message) {
+      message.textContent = "La note doit être comprise entre 1 et 5.";
+    }
+    return;
+  }
+
+  button.disabled = true;
+  button.textContent = "AJOUT EN COURS...";
+
+  try {
+    await addDoc(collection(db, "reviews"), {
+      name,
+      rating,
+      comment,
+      featured: false,
+      isTest: true,
+      createdAt: serverTimestamp()
+    });
+
+    await renderAdminReviews();
+
+  } catch (error) {
+    console.error("Erreur ajout avis de test :", error);
+
+    if (message) {
+      message.textContent = "Erreur : " + error.message;
+    }
+
+    button.disabled = false;
+    button.textContent = "AJOUTER L'AVIS DE TEST";
+  }
+}
+
+/* METTRE UN AVIS À LA UNE */
+
+async function toggleFeaturedReview(id, knownCount) {
+  if (!isAdmin()) {
+    return alert("Accès refusé.");
+  }
+
+  const review = adminReviewsCache.get(id);
+  if (!review) return;
+
+  try {
+    const snap = await getDocs(collection(db, "reviews"));
+
+    const featuredCount = snap.docs.filter(
+      reviewDoc => reviewDoc.data().featured === true
+    ).length;
+
+    if (!review.featured && featuredCount >= 2) {
+      return alert(
+        "Tu as déjà deux avis à la une. Retire-en un avant d'en ajouter un autre."
+      );
+    }
+
+    await updateDoc(doc(db, "reviews", id), {
+      featured: !review.featured
+    });
+
+    await renderAdminReviews();
+
+  } catch (error) {
+    console.error(error);
+    alert("Erreur : " + error.message);
+  }
+}
+
+/* SUPPRIMER UN AVIS */
+
+async function removeReview(id) {
+  if (!isAdmin()) {
+    return alert("Accès refusé.");
+  }
+
+  const confirmed = confirm(
+    "Veux-tu vraiment supprimer définitivement cet avis ?"
+  );
+
+  if (!confirmed) return;
+
+  try {
+    await deleteDoc(doc(db, "reviews", id));
+    await renderAdminReviews();
+
+  } catch (error) {
+    console.error(error);
+    alert("Erreur lors de la suppression : " + error.message);
+  }
+}
+
+/* ENREGISTRER LES MODIFICATIONS D'UNE COMMANDE */
+
 async function saveOrderChanges(id) {
-  if (!isAdmin()) return alert("Accès refusé.");
+  if (!isAdmin()) {
+    return alert("Accès refusé.");
+  }
 
   const oldOrder = adminOrdersCache.get(id);
+
+  if (!oldOrder) {
+    return alert("Commande introuvable.");
+  }
+
   const status = $(`status-${id}`).value;
 
-  if (status === "Payée — paiement vérifié" && !oldOrder.paymentVerified) {
-    if (!confirm("As-tu réellement vérifié que le paiement est arrivé sur ton compte ?")) return;
+  if (
+    status === "Payée — paiement vérifié" &&
+    !oldOrder.paymentVerified
+  ) {
+    if (!confirm(
+      "As-tu réellement vérifié que le paiement est arrivé sur ton compte ?"
+    )) {
+      return;
+    }
   }
 
   const carrier = $(`carrier-${id}`).value.trim();
@@ -1055,11 +1573,13 @@ async function saveOrderChanges(id) {
           ? "Commande enregistrée et e-mail de suivi envoyé."
           : "Commande enregistrée, mais e-mail non envoyé. Vérifie EmailJS."
       );
+
     } else {
       alert("Commande mise à jour.");
     }
 
     await renderAdmin();
+
   } catch (error) {
     console.error(error);
     alert("Erreur : " + error.message);
@@ -1089,7 +1609,9 @@ document.querySelectorAll("[data-close]").forEach(button => {
 
 document.querySelectorAll(".overlay").forEach(overlay => {
   overlay.addEventListener("click", event => {
-    if (event.target === overlay) overlay.classList.remove("show");
+    if (event.target === overlay) {
+      overlay.classList.remove("show");
+    }
   });
 });
 
