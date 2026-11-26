@@ -2,7 +2,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/13.4.0/firebas
 
 import {
   getFirestore, collection, addDoc, getDocs, doc, updateDoc,
-  query, where, orderBy, serverTimestamp
+  query, where, orderBy, serverTimestamp, deleteDoc
 } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore.js";
 
 import {
@@ -417,6 +417,7 @@ const products = [
     sizes: ["XS","S","M","L","XL","XXL","XXXL"]
   }
 ];
+
 
 /* BOUTIQUE */
 
@@ -1042,7 +1043,7 @@ async function loadCustomerOrders() {
   }
 }
 
-/* ADMINISTRATION : COMMANDES UNIQUEMENT */
+/* ADMINISTRATION : COMMANDES */
 
 $("admin-open")?.addEventListener("click", async () => {
   if (!isAdmin()) {
@@ -1159,6 +1160,14 @@ async function renderAdmin() {
           <button class="primary-btn" data-save="${escapeHTML(id)}">
             ENREGISTRER
           </button>
+
+          <button
+            class="primary-btn"
+            style="background:#c62828;color:white;margin-top:8px"
+            data-delete-order="${escapeHTML(id)}"
+          >
+            SUPPRIMER LA COMMANDE
+          </button>
         </div>
       `;
     });
@@ -1176,10 +1185,44 @@ async function renderAdmin() {
       );
     });
 
+    area.querySelectorAll("[data-delete-order]").forEach(button => {
+      button.addEventListener("click", () =>
+        deleteOrder(button.dataset.deleteOrder)
+      );
+    });
+
   } catch (error) {
     console.error(error);
     area.innerHTML =
       "Erreur de chargement : " + escapeHTML(error.message);
+  }
+}
+
+/* SUPPRIMER UNE COMMANDE — AUCUNE CONDITION DE LIVRAISON */
+
+async function deleteOrder(id) {
+  if (!isAdmin()) {
+    return alert("Accès refusé.");
+  }
+
+  const confirmed = confirm(
+    "Veux-tu vraiment supprimer définitivement cette commande ?"
+  );
+
+  if (!confirmed) return;
+
+  try {
+    await deleteDoc(doc(db, "orders", id));
+
+    adminOrdersCache.delete(id);
+
+    alert("Commande supprimée avec succès.");
+
+    await renderAdmin();
+
+  } catch (error) {
+    console.error("Erreur suppression commande :", error);
+    alert("Impossible de supprimer la commande : " + error.message);
   }
 }
 
