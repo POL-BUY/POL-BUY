@@ -1,98 +1,453 @@
 
-<!doctype html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="POL BUY — vêtements et accessoires à petits prix">
-  <title>POL BUY — Boutique</title>
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#123c2d">
+  <title>POL BUY — Boutique officielle</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
   <style>
-    *{box-sizing:border-box}
-    body{margin:0;background:#fff;color:#111;font-family:Arial,Helvetica,sans-serif}
-    header{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid #e8e8e8;padding:16px 5%;display:flex;align-items:center;justify-content:space-between;gap:16px}
-    header h1{margin:0;font-size:26px;letter-spacing:5px}
-    nav{display:flex;gap:10px;flex-wrap:wrap}
-    button,select,input{font:inherit}
-    header button,.toolbar button{border:1px solid #111;background:#111;color:#fff;padding:10px 14px;cursor:pointer}
-    main{max-width:1200px;margin:auto;padding:28px 5%}
-    .hero{padding:42px 20px;background:#111;color:#fff;text-align:center;margin-bottom:26px}
-    .hero h2{font-size:clamp(28px,5vw,48px);letter-spacing:3px;margin:0 0 10px}
-    .hero p{margin:0;color:#ddd}
-    .toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:20px 0}
-    .toolbar select{padding:10px;border:1px solid #aaa;min-width:190px}
-    .product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:18px}
-    .product-card{border:1px solid #eee;background:#fff}
-    .product-info h3{font-size:15px;line-height:1.4;margin:6px 0}
-    .product-brand{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#777;margin:0}
-    .product-price{font-weight:bold}
-    .product-info .add-to-cart{width:100%;padding:11px;background:#111;color:#fff;border:0;cursor:pointer}
-    .site-note{margin-top:32px;padding:18px;background:#f6f6f6;line-height:1.6}
-    footer{padding:28px 5%;border-top:1px solid #eee;text-align:center;color:#666;font-size:13px}
-
-    @media(max-width:600px){
-      header{align-items:flex-start;flex-direction:column}
-      header h1{font-size:22px}
-      .product-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-      .product-info{padding:9px!important}
-      .product-info h3{font-size:13px}
+    :root {
+      --green: #123c2d;
+      --green2: #1d5941;
+      --gold: #d7b94b;
+      --cream: #f7f7f2;
+      --ink: #17231d;
+      --muted: #78827b;
+      --line: #e8ebe6;
+      --white: #fff;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--cream);
+      font-family: "DM Sans", sans-serif;
+    }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    .announcement {
+      padding: 9px 16px;
+      background: var(--green);
+      color: white;
+      text-align: center;
+      font-size: 11px;
+      letter-spacing: 1.5px;
+    }
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: rgba(255,255,255,.96);
+      border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(12px);
+    }
+    .nav {
+      max-width: 1280px;
+      margin: auto;
+      min-height: 82px;
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
+    .logo {
+      color: var(--green);
+      font-family: "Playfair Display", serif;
+      font-size: 32px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-decoration: none;
+    }
+    .logo span { color: var(--gold); }
+    .nav-actions { display: flex; align-items: center; gap: 10px; }
+    .nav-btn {
+      border: 1px solid var(--line);
+      background: white;
+      color: var(--green);
+      border-radius: 30px;
+      padding: 11px 16px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .nav-btn:hover { border-color: var(--gold); }
+    .hero {
+      background: var(--green);
+      color: white;
+      padding: 78px 24px 85px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero:after {
+      content: "";
+      position: absolute;
+      width: 360px;
+      height: 360px;
+      border: 1px solid rgba(215,185,75,.25);
+      border-radius: 50%;
+      right: -130px;
+      top: -190px;
+    }
+    .eyebrow {
+      color: var(--gold);
+      font-size: 11px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+    }
+    .hero h1 {
+      font-family: "Playfair Display", serif;
+      font-size: clamp(42px, 7vw, 76px);
+      line-height: 1.05;
+      font-weight: 500;
+      margin: 18px 0;
+    }
+    .hero p { color: #dce7df; max-width: 550px; margin: auto; line-height: 1.8; }
+    .hero a {
+      display: inline-block;
+      margin-top: 28px;
+      background: var(--gold);
+      color: var(--green);
+      text-decoration: none;
+      padding: 14px 26px;
+      border-radius: 3px;
+      font-weight: 700;
+      font-size: 12px;
+      letter-spacing: 1px;
+    }
+    main { max-width: 1280px; margin: auto; padding: 48px 24px; }
+    .section-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .section-heading h2 {
+      font-family: "Playfair Display", serif;
+      color: var(--green);
+      font-size: 34px;
+      font-weight: 500;
+      margin: 0;
+    }
+    .section-heading p { color: var(--muted); font-size: 13px; margin: 6px 0 0; }
+    .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 25px; }
+    .filter {
+      border: 1px solid #dfe5df;
+      color: var(--green);
+      background: white;
+      border-radius: 30px;
+      padding: 9px 15px;
+      font-size: 12px;
+    }
+    .filter.active { background: var(--green); color: white; border-color: var(--green); }
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0,1fr));
+      gap: 22px;
+    }
+    .product-card {
+      background: white;
+      border: 1px solid var(--line);
+      transition: .25s;
+    }
+    .product-card:hover { transform: translateY(-4px); box-shadow: 0 14px 35px #183d2910; }
+    .product-photo {
+      width: 100%;
+      aspect-ratio: 4 / 5;
+      object-fit: cover;
+      display: block;
+      background: #f0f1ed;
+      cursor: pointer;
+    }
+    .product-info { padding: 15px; }
+    .product-brand { color: var(--muted); font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; }
+    .product-name { margin: 7px 0; font-size: 14px; font-weight: 600; }
+    .product-price { color: var(--green); font-size: 16px; font-weight: 700; }
+    .product-open {
+      width: 100%;
+      margin-top: 13px;
+      background: white;
+      border: 1px solid var(--green);
+      color: var(--green);
+      padding: 10px;
+      font-size: 11px;
+      letter-spacing: 1px;
+      font-weight: 700;
+    }
+    .product-open:hover { background: var(--green); color: white; }
+    .benefits {
+      display: grid;
+      grid-template-columns: repeat(3,1fr);
+      gap: 15px;
+      margin: 55px 0 15px;
+    }
+    .benefit {
+      background: white;
+      border: 1px solid var(--line);
+      padding: 22px;
+      text-align: center;
+    }
+    .benefit strong { color: var(--green); display: block; margin-bottom: 7px; }
+    .benefit span { color: var(--muted); font-size: 12px; }
+    footer {
+      background: #102f24;
+      color: white;
+      padding: 42px 24px;
+      text-align: center;
+    }
+    footer .logo { color: white; }
+    footer p { color: #c4d2c8; font-size: 12px; line-height: 1.8; }
+    .overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      background: #07140fd1;
+      padding: 20px;
+      overflow-y: auto;
+      align-items: center;
+      justify-content: center;
+    }
+    .overlay.show { display: flex; }
+    .modal {
+      width: min(850px,100%);
+      background: white;
+      padding: 25px;
+      position: relative;
+      max-height: 92vh;
+      overflow-y: auto;
+    }
+    .close {
+      position: absolute;
+      right: 15px;
+      top: 12px;
+      border: 0;
+      background: transparent;
+      color: var(--green);
+      font-size: 26px;
+    }
+    .detail-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+    .detail-image-wrap { position: relative; }
+    .detail-image { width: 100%; aspect-ratio: 4/5; object-fit: cover; background: #f1f2ee; }
+    .gallery-btn {
+      position: absolute;
+      top: 48%;
+      border: 0;
+      border-radius: 50%;
+      background: white;
+      width: 38px;
+      height: 38px;
+      color: var(--green);
+      font-size: 20px;
+    }
+    .gallery-prev { left: 10px; }
+    .gallery-next { right: 10px; }
+    .detail-content { padding: 20px 5px; }
+    .detail-content h2 { font-family: "Playfair Display",serif; color: var(--green); font-size: 29px; }
+    .detail-price { font-size: 23px; font-weight: 700; color: var(--green); }
+    .field-label { display: block; font-size: 12px; font-weight: 700; margin: 20px 0 9px; }
+    .choice-list { display: flex; flex-wrap: wrap; gap: 8px; }
+    .choice {
+      border: 1px solid #dce3dc;
+      padding: 9px 12px;
+      background: white;
+      font-size: 12px;
+    }
+    .choice.selected { border-color: var(--green); background: var(--green); color: white; }
+    .primary-btn {
+      width: 100%;
+      background: var(--green);
+      color: white;
+      border: 0;
+      padding: 15px;
+      margin-top: 22px;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+    .primary-btn:hover { background: var(--green2); }
+    .panel {
+      background: white;
+      width: min(650px,100%);
+      padding: 28px;
+      max-height: 90vh;
+      overflow-y: auto;
+      position: relative;
+    }
+    .panel h2 { font-family: "Playfair Display",serif; color: var(--green); margin-top: 0; }
+    .form-field { width: 100%; padding: 12px; border: 1px solid #dce3dc; margin: 6px 0 12px; background: white; }
+    .form-label { display: block; font-size: 12px; font-weight: 600; }
+    .cart-line, .admin-order {
+      border-bottom: 1px solid var(--line);
+      padding: 14px 0;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      font-size: 13px;
+    }
+    .small-btn {
+      border: 1px solid var(--line);
+      padding: 7px 10px;
+      background: white;
+      color: var(--green);
+      font-size: 11px;
+    }
+    .notice { padding: 12px; background: #f1f5ed; color: var(--green); font-size: 12px; margin: 12px 0; }
+    .admin-tag { color: var(--green); background: #edf4ed; padding: 5px 8px; font-size: 10px; }
+    .hidden { display: none !important; }
+    @media(max-width:900px) { .product-grid { grid-template-columns: repeat(3,1fr); } }
+    @media(max-width:650px) {
+      .nav { padding: 12px; min-height: 68px; }
+      .logo { font-size: 25px; }
+      .nav-actions { gap: 5px; }
+      .nav-btn { padding: 9px 10px; font-size: 11px; }
+      .hero { padding: 60px 18px; }
+      main { padding: 35px 14px; }
+      .product-grid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 11px; }
+      .product-info { padding: 11px; }
+      .product-name { font-size: 12px; }
+      .product-price { font-size: 14px; }
+      .detail-layout { grid-template-columns: 1fr; gap: 5px; }
+      .detail-content { padding: 5px; }
+      .benefits { grid-template-columns: 1fr; }
+      .section-heading h2 { font-size: 28px; }
     }
   </style>
 </head>
-
 <body>
-  <header>
-    <h1>POL BUY</h1>
+  <div class="announcement">LIVRAISON 3,99 € — OFFERTE DÈS 24,99 € D’ACHAT</div>
 
-    <nav aria-label="Navigation principale">
-      <button id="account-open" type="button">Mon compte</button>
-      <button id="cart-open" type="button">
-        Panier (<span data-cart-count>0</span>)
-      </button>
-      <button id="admin-open" type="button">Administration</button>
+  <header>
+    <nav class="nav">
+      <a class="logo" href="#">POL<span>.</span>BUY</a>
+      <div class="nav-actions">
+        <button class="nav-btn" id="account-open">Compte</button>
+        <button class="nav-btn" id="cart-open">Panier <span id="cart-count">0</span></button>
+        <button class="nav-btn hidden" id="admin-open">Administration</button>
+      </div>
     </nav>
   </header>
 
-  <main>
-    <section class="hero">
-      <h2>POL BUY</h2>
-      <p>Le style, à prix accessible.</p>
-    </section>
+  <section class="hero">
+    <div class="eyebrow">L'élégance au quotidien</div>
+    <h1>Le style, sans<br>compromis.</h1>
+    <p>Une sélection de vêtements et de chaussures pensée pour celles et ceux qui aiment les belles pièces.</p>
+    <a href="#boutique">DÉCOUVRIR LA COLLECTION</a>
+  </section>
 
-    <div class="toolbar">
+  <main id="boutique">
+    <div class="section-heading">
       <div>
-        <strong>La boutique</strong>
-        <p style="margin:5px 0;color:#777">
-          Choisis un article pour voir ses photos et ses variantes.
-        </p>
+        <div class="eyebrow">POL BUY — COLLECTION</div>
+        <h2>La boutique</h2>
+        <p>Découvrez notre sélection.</p>
       </div>
-
-      <label for="category-filter">
-        Catégorie
-        <select id="category-filter">
-          <option value="all">Toutes les catégories</option>
-          <option value="Nike">Nike</option>
-          <option value="C.P. Company">C.P. Company</option>
-          <option value="Stone Island">Stone Island</option>
-          <option value="Under Armour">Under Armour</option>
-        </select>
-      </label>
     </div>
 
-    <section id="product-grid" class="product-grid" aria-live="polite"></section>
+    <div class="filters" id="category-filter">
+      <button class="filter active" data-category="Tous">Tout</button>
+      <button class="filter" data-category="Nike">Nike</button>
+      <button class="filter" data-category="C.P. Company">C.P. Company</button>
+      <button class="filter" data-category="Stone Island">Stone Island</button>
+      <button class="filter" data-category="Under Armour">Under Armour</button>
+    </div>
 
-    <section class="site-note">
-      <strong>Livraison :</strong>
-      3,99 € dans le monde entier. Livraison offerte dès 24,99 € d'achat.
-      <br>
-      <strong>Paiement :</strong>
-      le paiement est vérifié manuellement avant confirmation de la commande.
-      Après avoir passé commande, suis les instructions de paiement affichées
-      dans ton panier.
+    <div class="product-grid" id="product-grid"></div>
+
+    <div class="benefits">
+      <div class="benefit"><strong>Livraison</strong><span>3,99 € — offerte dès 24,99 €</span></div>
+      <div class="benefit"><strong>Service client</strong><span>Une question ? Contactez-nous.</span></div>
+      <div class="benefit"><strong>Suivi de commande</strong><span>Consultez les informations de livraison depuis votre compte.</span></div>
+    </div>
+
+    <section style="margin-top:55px;max-width:650px">
+      <div class="eyebrow">Une demande particulière ?</div>
+      <h2 style="font-family:'Playfair Display',serif;color:var(--green)">Demander un article</h2>
+      <p style="font-size:13px;color:var(--muted)">Indiquez-nous la marque et l'article que vous recherchez.</p>
+      <form id="request-form">
+        <label class="form-label">Votre nom</label>
+        <input class="form-field" name="name" required>
+        <label class="form-label">Votre adresse e-mail</label>
+        <input class="form-field" name="email" type="email" required>
+        <label class="form-label">Marque recherchée</label>
+        <input class="form-field" name="brand" required>
+        <label class="form-label">Nom de l'article</label>
+        <input class="form-field" name="product" required>
+        <label class="form-label">Description ou lien de l'article</label>
+        <textarea class="form-field" name="description" rows="3"></textarea>
+        <button class="primary-btn" type="submit">ENVOYER MA DEMANDE</button>
+      </form>
+      <div id="request-message"></div>
     </section>
   </main>
 
-  <footer>POL BUY · Boutique en ligne</footer>
+  <footer>
+    <div class="logo">POL<span style="color:var(--gold)">.</span>BUY</div>
+    <p>Une sélection de pièces pour un style affirmé.<br>© 2026 POL BUY — Tous droits réservés.</p>
+    <p>Contact : pol.buy.off@gmail.com</p>
+  </footer>
+
+  <!-- Fiche produit -->
+  <div class="overlay" id="product-overlay">
+    <div class="modal">
+      <button class="close" data-close="product-overlay">×</button>
+      <div class="detail-layout">
+        <div class="detail-image-wrap">
+          <img class="detail-image" id="detail-image" alt="Photo du produit">
+          <button class="gallery-btn gallery-prev" id="gallery-prev">‹</button>
+          <button class="gallery-btn gallery-next" id="gallery-next">›</button>
+        </div>
+        <div class="detail-content">
+          <div class="product-brand" id="detail-brand"></div>
+          <h2 id="detail-name"></h2>
+          <div class="detail-price" id="detail-price"></div>
+          <div id="detail-color-area">
+            <span class="field-label">Couleur</span>
+            <div class="choice-list" id="detail-colors"></div>
+          </div>
+          <span class="field-label">Taille</span>
+          <div class="choice-list" id="detail-sizes"></div>
+          <button class="primary-btn" id="add-to-cart">AJOUTER AU PANIER</button>
+          <p style="font-size:11px;color:var(--muted);line-height:1.7">Les photos supplémentaires sont consultables avec les flèches. Le prix affiché correspond à la variante sélectionnée.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Panier -->
+  <div class="overlay" id="cart-overlay">
+    <div class="panel">
+      <button class="close" data-close="cart-overlay">×</button>
+      <h2>Votre panier</h2>
+      <div id="cart-items"></div>
+      <div id="cart-total"></div>
+      <div id="checkout-area"></div>
+    </div>
+  </div>
+
+  <!-- Compte client -->
+  <div class="overlay" id="account-overlay">
+    <div class="panel">
+      <button class="close" data-close="account-overlay">×</button>
+      <h2>Votre compte</h2>
+      <div id="account-content"></div>
+    </div>
+  </div>
+
+  <!-- Administration -->
+  <div class="overlay" id="admin-overlay">
+    <div class="panel" style="width:min(950px,100%)">
+      <button class="close" data-close="admin-overlay">×</button>
+      <h2>Administration POL BUY</h2>
+      <div class="notice">Espace privé réservé au compte pol.buy.off@gmail.com.</div>
+      <div id="admin-content"></div>
+    </div>
+  </div>
 
   <script type="module" src="./app.js"></script>
 </body>
