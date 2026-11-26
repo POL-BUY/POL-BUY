@@ -188,7 +188,7 @@ const products = [
   {
     id: "ua-tech-boy",
     brand: "Under Armour",
-    name: "UA Tech 2.0 pour garçon",
+    name: "UA Tech 2.0 ",
     price: 3.46,
     color: "Blanc",
     images: [
