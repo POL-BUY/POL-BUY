@@ -1279,7 +1279,7 @@ async function saveOrderChanges(id) {
 
     if (trackingChanged && (trackingNumber || trackingStatus)) {
       const sent = await sendEmail(TEMPLATE_TRACKING, {
-        to_email: oldOrder.customerEmail,
+        to_email: oldOrder.customerEmail || oldOrder.email,
         customer_name: oldOrder.customerName,
         order_id: id,
         status,
