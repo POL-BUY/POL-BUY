@@ -1228,6 +1228,7 @@ async function deleteOrder(id) {
 
 /* ENREGISTRER LES MODIFICATIONS D'UNE COMMANDE */
 
+
 async function saveOrderChanges(id) {
   if (!isAdmin()) {
     return alert("Accès refusé.");
@@ -1258,6 +1259,9 @@ async function saveOrderChanges(id) {
   const trackingLocation = $(`location-${id}`).value.trim();
   const estimatedDelivery = $(`delivery-${id}`).value.trim();
 
+  const customerEmail =
+    oldOrder.customerEmail || oldOrder.email || "";
+
   try {
     await updateDoc(doc(db, "orders", id), {
       status,
@@ -1278,16 +1282,27 @@ async function saveOrderChanges(id) {
       carrier !== (oldOrder.carrier || "");
 
     if (trackingChanged && (trackingNumber || trackingStatus)) {
+
+      if (!customerEmail) {
+        alert(
+          "Commande enregistrée, mais aucun e-mail client n'est enregistré pour cette commande."
+        );
+        await renderAdmin();
+        return;
+      }
+
       const sent = await sendEmail(TEMPLATE_TRACKING, {
-        to_email: oldOrder.customerEmail || oldOrder.email,
-        customer_name: oldOrder.customerName,
+        to_email: customerEmail,
+        customer_email: customerEmail,
+        customer_name: oldOrder.customerName || "Client",
         order_id: id,
-        status,
-        carrier,
-        tracking_number: trackingNumber,
-        tracking_status: trackingStatus,
-        tracking_location: trackingLocation,
-        estimated_delivery: estimatedDelivery
+        order_status: status,
+        status_message: trackingStatus || "Le suivi de votre commande a été mis à jour.",
+        carrier: carrier || "À confirmer",
+        tracking_number: trackingNumber || "En attente",
+        tracking_status: trackingStatus || "",
+        tracking_location: trackingLocation || "",
+        estimated_delivery: estimatedDelivery || ""
       });
 
       alert(
@@ -1297,13 +1312,13 @@ async function saveOrderChanges(id) {
       );
 
     } else {
-      alert("Commande mise à jour.");
+      alert("Commande mise à jour. Aucun changement de suivi détecté.");
     }
 
     await renderAdmin();
 
   } catch (error) {
-    console.error(error);
+    console.error("ERREUR SUIVI :", error);
     alert("Erreur : " + error.message);
   }
 }
