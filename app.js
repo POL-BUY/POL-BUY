@@ -1436,3 +1436,358 @@ onAuthStateChanged(auth, user => {
 
 renderProducts();
 saveCart();
+/* ==========================================
+   ÉVÉNEMENTS SAISONNIERS POL BUY
+   HALLOWEEN - NOËL - PÂQUES
+========================================== */
+
+const seasonalEvents = {
+  halloween: {
+    name: "Halloween",
+    emoji: "🎃",
+    start: [10, 1],
+    end: [11, 1],
+    background: "#171020",
+    color: "#ff8c00",
+    message: "🎃 HALLOWEEN CHEZ POL BUY ! 🎃"
+  },
+  christmas: {
+    name: "Noël",
+    emoji: "🎄",
+    start: [12, 1],
+    end: [1, 1],
+    background: "#123c2b",
+    color: "#ffffff",
+    message: "🎄 NOËL EST ARRIVÉ CHEZ POL BUY ! 🎄"
+  },
+  easter: {
+    name: "Pâques",
+    emoji: "🐰",
+    background: "#fce8f0",
+    color: "#783b70",
+    message: "🐰 JOYEUSES PÂQUES CHEZ POL BUY !"
+  }
+};
+
+let seasonalTest = null;
+
+function getEasterDate(year) {
+  const a = year % 19;
+  const b = Math.floor(year / 100);
+  const c = year % 100;
+  const d = Math.floor(b / 4);
+  const e = b % 4;
+  const f = Math.floor((b + 8) / 25);
+  const g = Math.floor((b - f + 1) / 3);
+  const h = (19 * a + b - d - g + 15) % 30;
+  const i = Math.floor(c / 4);
+  const k = c % 4;
+  const l = (32 + 2 * e + 2 * i - h - k) % 7;
+  const m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const month = Math.floor((h + l - 7 * m + 114) / 31);
+  const day = ((h + l - 7 * m + 114) % 31) + 1;
+
+  return new Date(year, month - 1, day);
+}
+
+function getNextHoliday() {
+  const now = new Date();
+  const year = now.getFullYear();
+
+  const holidays = [
+    {
+      name: "Halloween 🎃",
+      date: new Date(year, 9, 31)
+    },
+    {
+      name: "Noël 🎄",
+      date: new Date(year, 11, 25)
+    },
+    {
+      name: "Pâques 🐰",
+      date: getEasterDate(year)
+    }
+  ];
+
+  holidays.forEach(event => {
+    if (event.date < now) {
+      if (event.name.includes("Pâques")) {
+        event.date = getEasterDate(year + 1);
+      } else {
+        event.date.setFullYear(year + 1);
+      }
+    }
+  });
+
+  holidays.sort((a, b) => a.date - b.date);
+  return holidays[0];
+}
+
+function getAutomaticSeason() {
+  const now = new Date();
+  const month = now.getMonth() + 1;
+  const day = now.getDate();
+
+  if (month === 10) return "halloween";
+  if (month === 12) return "christmas";
+
+  const easter = getEasterDate(now.getFullYear());
+  const easterStart = new Date(easter);
+  easterStart.setDate(easter.getDate() - 7);
+
+  const easterEnd = new Date(easter);
+  easterEnd.setDate(easter.getDate() + 1);
+
+  if (now >= easterStart && now <= easterEnd) {
+    return "easter";
+  }
+
+  return null;
+}
+
+function isChristmasPromotionActive() {
+  const now = new Date();
+  const year = now.getFullYear();
+
+  const start = new Date(year, 11, 11);
+  const end = new Date(year + 1, 0, 1);
+
+  return now >= start && now <= end;
+}
+
+function installSeasonalStyles() {
+  if (document.getElementById("pol-seasonal-styles")) return;
+
+  const style = document.createElement("style");
+  style.id = "pol-seasonal-styles";
+
+  style.textContent = `
+    #pol-season-banner {
+      display: none;
+      width: 100%;
+      padding: 15px;
+      text-align: center;
+      font-weight: 900;
+      font-size: 19px;
+      box-sizing: border-box;
+      z-index: 999;
+    }
+
+    #pol-season-decor {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 998;
+      overflow: hidden;
+    }
+
+    .pol-season-decoration {
+      position: absolute;
+      font-size: 25px;
+      animation: pol-float 4s ease-in-out infinite;
+    }
+
+    @keyframes pol-float {
+      0%, 100% { transform: translateY(0) rotate(-5deg); }
+      50% { transform: translateY(12px) rotate(5deg); }
+    }
+
+    #pol-holiday-countdown {
+      position: fixed;
+      bottom: 15px;
+      left: 15px;
+      z-index: 1000;
+      background: #171717;
+      color: white;
+      padding: 12px 15px;
+      border-radius: 12px;
+      font-size: 13px;
+      box-shadow: 0 3px 15px #0004;
+    }
+
+    #pol-season-admin {
+      position: fixed;
+      right: 15px;
+      bottom: 15px;
+      z-index: 1001;
+      background: white;
+      color: #171717;
+      padding: 12px;
+      border-radius: 12px;
+      box-shadow: 0 3px 15px #0004;
+      display: none;
+    }
+
+    #pol-season-admin select,
+    #pol-season-admin button {
+      margin: 4px;
+      padding: 8px;
+      border-radius: 7px;
+    }
+
+    .pol-christmas-discount {
+      display: inline-block;
+      background: #d71920;
+      color: white;
+      padding: 5px 9px;
+      border-radius: 6px;
+      font-weight: 900;
+      margin: 6px 0;
+    }
+  `;
+
+  document.head.appendChild(style);
+}
+
+function createSeasonalElements() {
+  if (!document.getElementById("pol-season-banner")) {
+    const banner = document.createElement("div");
+    banner.id = "pol-season-banner";
+    document.body.prepend(banner);
+  }
+
+  if (!document.getElementById("pol-season-decor")) {
+    const decor = document.createElement("div");
+    decor.id = "pol-season-decor";
+    document.body.appendChild(decor);
+  }
+
+  if (!document.getElementById("pol-holiday-countdown")) {
+    const countdown = document.createElement("div");
+    countdown.id = "pol-holiday-countdown";
+    document.body.appendChild(countdown);
+  }
+
+  if (!document.getElementById("pol-season-admin")) {
+    const admin = document.createElement("div");
+    admin.id = "pol-season-admin";
+
+    admin.innerHTML = `
+      <strong>Tester un événement</strong><br>
+      <select id="pol-season-choice">
+        <option value="auto">Automatique</option>
+        <option value="halloween">Halloween</option>
+        <option value="christmas">Noël</option>
+        <option value="easter">Pâques</option>
+        <option value="none">Désactivé</option>
+      </select>
+      <button id="pol-season-apply">Tester</button>
+    `;
+
+    document.body.appendChild(admin);
+
+    document.getElementById("pol-season-apply")
+      .addEventListener("click", () => {
+        seasonalTest =
+          document.getElementById("pol-season-choice").value;
+
+        applySeasonalEvent();
+      });
+  }
+}
+
+function applySeasonalEvent() {
+  const banner = document.getElementById("pol-season-banner");
+  const decor = document.getElementById("pol-season-decor");
+
+  if (!banner || !decor) return;
+
+  const eventName =
+    seasonalTest === null || seasonalTest === "auto"
+      ? getAutomaticSeason()
+      : seasonalTest === "none"
+        ? null
+        : seasonalTest;
+
+  const event = eventName
+    ? seasonalEvents[eventName]
+    : null;
+
+  if (!event) {
+    banner.style.display = "none";
+    decor.innerHTML = "";
+    document.body.style.backgroundColor = "";
+    document.body.style.color = "";
+    return;
+  }
+
+  banner.style.display = "block";
+  banner.textContent = event.message;
+  banner.style.background = event.background;
+  banner.style.color = event.color;
+
+  const decorations = {
+    halloween: ["🎃", "🕸️", "👻", "🦇"],
+    christmas: ["🎄", "❄️", "🎅", "⭐"],
+    easter: ["🐰", "🥚", "🌸", "🐣"]
+  };
+
+  decor.innerHTML = "";
+
+  decorations[eventName].forEach((emoji, index) => {
+    const item = document.createElement("span");
+    item.className = "pol-season-decoration";
+    item.textContent = emoji;
+    item.style.top = `${10 + index * 20}%`;
+    item.style.left = `${5 + index * 25}%`;
+    decor.appendChild(item);
+  });
+
+  const christmasPromo =
+    eventName === "christmas" &&
+    (seasonalTest !== null || isChristmasPromotionActive());
+
+  document.querySelectorAll(".product-card").forEach(card => {
+    let label = card.querySelector(".pol-christmas-discount");
+
+    if (christmasPromo) {
+      if (!label) {
+        label = document.createElement("div");
+        label.className = "pol-christmas-discount";
+        label.textContent = "-40% NOËL";
+        card.appendChild(label);
+      }
+    } else if (label) {
+      label.remove();
+    }
+  });
+}
+
+function updateHolidayCountdown() {
+  const target = document.getElementById("pol-holiday-countdown");
+  if (!target) return;
+
+  const next = getNextHoliday();
+  const difference = next.date.getTime() - Date.now();
+
+  const days = Math.max(0, Math.ceil(
+    difference / (1000 * 60 * 60 * 24)
+  ));
+
+  target.textContent =
+    `${next.name} dans ${days} jour${days > 1 ? "s" : ""} !`;
+}
+
+function updateSeasonalAdmin() {
+  const panel = document.getElementById("pol-season-admin");
+
+  if (panel) {
+    panel.style.display =
+      currentUser?.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase()
+        ? "block"
+        : "none";
+  }
+}
+
+function startPOLBuyEvents() {
+  installSeasonalStyles();
+  createSeasonalElements();
+  applySeasonalEvent();
+  updateHolidayCountdown();
+  updateSeasonalAdmin();
+
+  setInterval(updateHolidayCountdown, 60 * 60 * 1000);
+}
+
+/* LANCEMENT */
+startPOLBuyEvents();
