@@ -1439,8 +1439,8 @@ saveCart();
 /* ==========================================
    ÉVÉNEMENTS SAISONNIERS POL BUY
    HALLOWEEN - NOËL - PÂQUES
-   28 JOURS PAR ÉVÉNEMENT
-   -21 JOURS AVANT / +7 JOURS APRÈS
+   DÉBUT : 21 JOURS AVANT LA FÊTE
+   DURÉE : 28 JOURS AU TOTAL
    -40 % ET LIVRAISON GRATUITE
 ========================================== */
 
@@ -1505,7 +1505,8 @@ function getEasterDate(year) {
    PÉRIODE DES ÉVÉNEMENTS
    Début : 21 jours avant la fête
    Fin : 28 jours après le début
-   La date de fin est exclusive.
+   Fin exclusive : les promotions s'arrêtent
+   à minuit après le 28e jour.
 ========================================== */
 
 function getSeasonPeriod(key, holidayDate) {
@@ -1520,35 +1521,32 @@ function getSeasonPeriod(key, holidayDate) {
 }
 
 /* ==========================================
+   DATES DE TOUS LES ÉVÉNEMENTS
+========================================== */
+
+function getAllSeasonPeriods() {
+  const year = new Date().getFullYear();
+  const periods = [];
+
+  for (let y = year - 1; y <= year + 2; y++) {
+    periods.push(
+      getSeasonPeriod("halloween", new Date(y, 9, 31)),
+      getSeasonPeriod("christmas", new Date(y, 11, 25)),
+      getSeasonPeriod("easter", getEasterDate(y))
+    );
+  }
+
+  return periods;
+}
+
+/* ==========================================
    DÉTECTION AUTOMATIQUE DES SAISONS
 ========================================== */
 
 function getAutomaticSeason() {
   const now = new Date();
-  const year = now.getFullYear();
 
-  const periods = [];
-
-  for (let y = year - 1; y <= year + 1; y++) {
-    periods.push(
-      getSeasonPeriod(
-        "halloween",
-        new Date(y, 9, 31)
-      ),
-
-      getSeasonPeriod(
-        "christmas",
-        new Date(y, 11, 25)
-      ),
-
-      getSeasonPeriod(
-        "easter",
-        getEasterDate(y)
-      )
-    );
-  }
-
-  for (const period of periods) {
+  for (const period of getAllSeasonPeriods()) {
     if (now >= period.start && now < period.end) {
       return period.key;
     }
@@ -1558,37 +1556,26 @@ function getAutomaticSeason() {
 }
 
 /* ==========================================
-   PROCHAINE FÊTE POUR LE COMPTE À REBOURS
+   PROCHAIN DÉBUT DE PROMOTION
+   LE COMPTE À REBOURS VA JUSQU'AU DÉBUT
+   DES 28 JOURS DE PROMOTION.
 ========================================== */
 
 function getNextHoliday() {
   const now = new Date();
-  const year = now.getFullYear();
 
-  const dates = [];
+  const upcoming = getAllSeasonPeriods()
+    .filter(period => period.start > now)
+    .sort((a, b) => a.start - b.start);
 
-  for (let y = year; y <= year + 1; y++) {
-    dates.push(
-      {
-        key: "halloween",
-        date: new Date(y, 9, 31, 23, 59, 59)
-      },
-      {
-        key: "christmas",
-        date: new Date(y, 11, 25, 23, 59, 59)
-      },
-      {
-        key: "easter",
-        date: getEasterDate(y)
-      }
-    );
+  if (upcoming.length) {
+    return {
+      key: upcoming[0].key,
+      date: upcoming[0].start
+    };
   }
 
-  const upcoming = dates
-    .filter(item => item.date > now)
-    .sort((a, b) => a.date - b.date);
-
-  return upcoming[0];
+  return null;
 }
 
 /* ==========================================
@@ -1897,8 +1884,6 @@ function installSeasonalStyles() {
       right: 12px;
       top: 105px;
     }
-
-    /* FLOCONS QUI TOMBENT */
 
     #pol-season-scene .pol-snow {
       position: absolute;
@@ -2226,6 +2211,7 @@ function applySeasonalEvent() {
 /* ==========================================
    COMPTE À REBOURS
    JOURS - HEURES - MINUTES - SECONDES
+   COMPTE JUSQU'AU DÉBUT DE LA PROMOTION
 ========================================== */
 
 function updateHolidayCountdown() {
@@ -2235,6 +2221,14 @@ function updateHolidayCountdown() {
   if (seasonalTest !== "auto" && seasonalCurrentEvent) {
     target.textContent =
       `Mode test : ${seasonalEvents[seasonalCurrentEvent].name}`;
+    return;
+  }
+
+  const activeEvent = getAutomaticSeason();
+
+  if (activeEvent) {
+    target.textContent =
+      `${seasonalEvents[activeEvent].emoji} ${seasonalEvents[activeEvent].name} : PROMOTION EN COURS !`;
     return;
   }
 
