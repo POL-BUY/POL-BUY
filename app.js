@@ -266,6 +266,75 @@ const products = [
     sizes: ["XS","S","M","L","XL","XXL","XXXL"]
   },
 
+  // ==================== NIKE TECH FLEECE ====================
+  {
+    id: "nike-tech-ensemble",
+    brand: "Nike",
+    name: "Ensemble Nike Tech Fleece",
+    variants: [
+      {
+        color: "Gris",
+        price: 9.54,
+        images: [
+          "https://asset.snipes.com/images/f_auto,q_80,d_fallback-sni.png/b_rgb:f8f8f8,c_pad,w_680,h_680/if_md:!is_ai_generated!_eq_!true!/l_ai_icon/fl_layer_apply,g_south_east,w_24,x_24,y_24/if_end/dpr_1.0/02375346_1/nike-tech-fleece-jogger-gris-44379-1",
+          "https://asset.snipes.com/images/f_auto,q_80,d_fallback-sni.png/b_rgb:f8f8f8,c_pad,w_680,h_680/if_md:!is_ai_generated!_eq_!true!/l_ai_icon/fl_layer_apply,g_south_east,w_24,x_24,y_24/if_end/dpr_1.0/02375346_2/nike-tech-fleece-jogger-gris-44379-2",
+          "https://asset.snipes.com/images/f_auto,q_80,d_fallback-sni.png/b_rgb:f8f8f8,c_pad,w_680,h_680/if_md:!is_ai_generated!_eq_!true!/l_ai_icon/fl_layer_apply,g_south_east,w_24,x_24,y_24/if_end/dpr_1.0/02375346_4/nike-tech-fleece-jogger-gris-44379-4",
+          "https://asset.snipes.com/images/f_auto,q_80,d_fallback-sni.png/b_rgb:f8f8f8,c_pad,w_680,h_680/if_md:!is_ai_generated!_eq_!true!/l_ai_icon/fl_layer_apply,g_south_east,w_24,x_24,y_24/if_end/dpr_1.0/02375329_1/nike-tech-fleece-windrunner-gris-47019-1",
+          "https://asset.snipes.com/images/f_auto,q_80,d_fallback-sni.png/b_rgb:f8f8f8,c_pad,w_680,h_680/if_md:!is_ai_generated!_eq_!true!/l_ai_icon/fl_layer_apply,g_south_east,w_24,x_24,y_24/if_end/dpr_1.0/02375346_7/nike-tech-fleece-jogger-gris-44379-7"
+        ]
+      },
+      {
+        color: "Noir",
+        price: 9.54,
+        images: [
+          "https://i8.amplience.net/i/jpl/jd_719968_b?$prod404frFR$&qlt=default&fmt=auto&w=720&h=919",
+          "https://i8.amplience.net/i/jpl/jd_719968_f?$prod404frFR$&qlt=default&fmt=auto&w=720&h=919"
+        ]
+      },
+      {
+        color: "Bleu",
+        price: 9.54,
+        images: [
+          "https://static.nike.com/a/images/t_PDP_1728_v1/f_auto,q_auto:eco,u_9ddf04c7-2a9a-4d76-add1-d15af8f0263d,c_scale,fl_relative,w_1.0,h_1.0,fl_layer_apply/8cb91373-5a37-43f4-ae39-f03ec17812bb/M+NK+TECH+FLC+PRO+CB+OH+PANT.png",
+          "https://static.nike.com/a/images/t_PDP_1728_v1/f_auto,q_auto:eco,u_9ddf04c7-2a9a-4d76-add1-d15af8f0263d,c_scale,fl_relative,w_1.0,h_1.0,fl_layer_apply/fc8a5a33-6f57-4c38-893f-9f443a273518/M+NK+TECH+FLC+PRO+CB+OH+PANT.png",
+          "https://static.nike.com/a/images/t_PDP_1728_v1/f_auto,q_auto:eco,u_9ddf04c7-2a9a-4d76-add1-d15af8f0263d,c_scale,fl_relative,w_1.0,h_1.0,fl_layer_apply/ba9722f6-e01b-43d4-9bc3-7a8ee1d81e96/M+NK+TECH+FLC+PRO+CB+OH+PANT.png"
+        ]
+      }
+    ],
+    sizes: ["XS", "S", "M", "L", "XL", "XXL", "XXXL"]
+  },
+  {
+    id: "nike-tech-haut",
+    brand: "Nike",
+    name: "Haut Nike Tech Fleece",
+    variants: [
+      {
+        color: "Gris",
+        price: 4.59,
+        images: [
+          "https://asset.snipes.com/images/f_auto,q_80,d_fallback-sni.png/b_rgb:f8f8f8,c_pad,w_680,h_680/if_md:!is_ai_generated!_eq_!true!/l_ai_icon/fl_layer_apply,g_south_east,w_24,x_24,y_24/if_end/dpr_1.0/02375329_1/nike-tech-fleece-windrunner-gris-47019-1"
+        ]
+      },
+      {
+        color: "Orange",
+        price: 4.59,
+        images: [
+          "https://m.media-amazon.com/images/I/61-TMVFar3L._AC_SX466_.jpg",
+          "https://m.media-amazon.com/images/I/61MqS39aVsL._AC_SX466_.jpg"
+        ]
+      },
+      {
+        color: "Bleu PSG",
+        price: 4.59,
+        images: [
+          "https://static.nike.com/a/images/t_PDP_1728_v1/f_auto,q_auto:eco,u_9ddf04c7-2a9a-4d76-add1-d15af8f0263d,c_scale,fl_relative,w_1.0,h_1.0,fl_layer_apply/e85a6559-8860-4ecd-b36b-2feb2867a0a5/PSG+M+NK+TCH+FLC+FZ+WR+HOODIE.png",
+          "https://static.nike.com/a/images/t_PDP_1728_v1/f_auto,q_auto:eco,u_9ddf04c7-2a9a-4d76-add1-d15af8f0263d,c_scale,fl_relative,w_1.0,h_1.0,fl_layer_apply/e0049d68-4f6e-4a6e-b91e-dae994433f78/PSG+M+NK+TCH+FLC+FZ+WR+HOODIE.png"
+        ]
+      }
+    ],
+    sizes: ["XS", "S", "M", "L", "XL", "XXL", "XXXL"]
+  },
+
   // ==================== C.P. COMPANY ====================
   {
     id: "cp-pullover",
@@ -1227,7 +1296,6 @@ async function deleteOrder(id) {
 }
 
 /* ENREGISTRER LES MODIFICATIONS D'UNE COMMANDE */
-
 
 async function saveOrderChanges(id) {
   if (!isAdmin()) {
