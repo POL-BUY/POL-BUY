@@ -1437,10 +1437,10 @@ onAuthStateChanged(auth, user => {
 renderProducts();
 saveCart();
 /* ==========================================
-   ÉVÉNEMENTS SAISONNIERS POL BUY
-   HALLOWEEN - NOËL - PÂQUES
-   -40 % sur les articles pendant chaque événement
-   Livraison toujours facturée
+   POL BUY — ÉVÉNEMENTS SAISONNIERS AUTOMATIQUES
+   HALLOWEEN • NOËL • PÂQUES
+   -40 % SUR LES ARTICLES
+   LIVRAISON GRATUITE PENDANT LES ÉVÉNEMENTS
 ========================================== */
 
 const seasonalEvents = {
@@ -1456,23 +1456,24 @@ const seasonalEvents = {
     name: "Noël",
     emoji: "🎄",
     message: "LA MAGIE DE NOËL CHEZ POL BUY",
-    background: "linear-gradient(120deg, #0d3b35, #176b58 55%, #d7eee7)",
+    background: "linear-gradient(120deg, #123d35, #176b58 55%, #245b75)",
     color: "#ffffff",
     accent: "#d8f4eb"
   },
   easter: {
     name: "Pâques",
     emoji: "🐰",
-    message: "LA CHASSE AUX OFFRES DE PÂQUES",
+    message: "LES OFFRES DE PÂQUES CHEZ POL BUY",
     background: "linear-gradient(120deg, #f8d9e8, #e6dcff 55%, #d9f3e5)",
     color: "#49304f",
     accent: "#8c5a9e"
   }
 };
 
-let seasonalTest = "auto";
 let seasonalCurrentEvent = null;
 const SEASONAL_DISCOUNT_RATE = 0.40;
+
+/* DATE DE PÂQUES */
 
 function getEasterDate(year) {
   const a = year % 19;
@@ -1493,6 +1494,8 @@ function getEasterDate(year) {
   return new Date(year, month - 1, day, 23, 59, 59);
 }
 
+/* DÉTECTION AUTOMATIQUE DES SAISONS */
+
 function getAutomaticSeason() {
   const now = new Date();
   const year = now.getFullYear();
@@ -1511,6 +1514,8 @@ function getAutomaticSeason() {
 
   return null;
 }
+
+/* PROCHAINE FÊTE */
 
 function getNextHoliday() {
   const now = new Date();
@@ -1548,12 +1553,10 @@ function getNextHoliday() {
   return dates[0];
 }
 
-/* RÉDUCTION SAISONNIÈRE */
+/* RÉDUCTION */
 
 function getSeasonalDiscount() {
-  return seasonalCurrentEvent
-    ? SEASONAL_DISCOUNT_RATE
-    : 0;
+  return seasonalCurrentEvent ? SEASONAL_DISCOUNT_RATE : 0;
 }
 
 function getDiscountedSubtotal() {
@@ -1562,13 +1565,17 @@ function getDiscountedSubtotal() {
   );
 }
 
-/* LIVRAISON TOUJOURS FACTURÉE À 3,99 € */
+/* LIVRAISON GRATUITE PENDANT LES ÉVÉNEMENTS */
 
 shippingCost = function () {
-  return cart.length ? SHIPPING_PRICE : 0;
+  if (!cart.length) return 0;
+
+  if (seasonalCurrentEvent) return 0;
+
+  return SHIPPING_PRICE;
 };
 
-/* TOTAL AVEC RÉDUCTION */
+/* TOTAL */
 
 cartTotal = function () {
   return Number(
@@ -1576,7 +1583,7 @@ cartTotal = function () {
   );
 };
 
-/* AFFICHAGE DU PANIER */
+/* PANIER */
 
 renderCart = function () {
   const container = $("cart-items");
@@ -1621,27 +1628,41 @@ renderCart = function () {
   const total = cartTotal();
 
   $("cart-total").innerHTML = `
-    <p>Sous-total : <strong>${money(subtotal)}</strong></p>
+    <p>
+      Sous-total :
+      <strong>${money(subtotal)}</strong>
+    </p>
 
     ${discount > 0 ? `
-      <p style="color:#16834a">
-        Réduction ${Math.round(getSeasonalDiscount() * 100)} % :
+      <p style="color:#16834a;font-weight:800">
+        Réduction saisonnière −40 % :
         <strong>−${money(discount)}</strong>
       </p>
     ` : ""}
 
-    <p>Livraison : <strong>${shipping === 0 ? "—" : money(shipping)}</strong></p>
-
     <p>
-      Sous-total après réduction :
-      <strong>${money(discountedSubtotal)}</strong>
+      Livraison :
+      <strong style="color:${shipping === 0 ? "#16834a" : "inherit"}">
+        ${shipping === 0 ? "GRATUITE" : money(shipping)}
+      </strong>
     </p>
+
+    ${discount > 0 ? `
+      <p>
+        Sous-total après réduction :
+        <strong>${money(discountedSubtotal)}</strong>
+      </p>
+    ` : ""}
 
     <h3>TOTAL : ${money(total)}</h3>
   `;
 
   $("checkout-area").innerHTML = `
     <div class="notice">
+      ${seasonalCurrentEvent
+        ? "🎉 Offre saisonnière : −40 % et livraison gratuite !"
+        : "Livraison : 3,99 €"}
+      <br>
       La commande reste en attente jusqu'à vérification réelle du paiement.
     </div>
 
@@ -1667,7 +1688,7 @@ renderCart = function () {
   $("place-order").addEventListener("click", placeOrder);
 };
 
-/* ENREGISTREMENT DE LA COMMANDE AVEC LA RÉDUCTION */
+/* ENREGISTREMENT DE LA COMMANDE */
 
 placeOrder = async function () {
   if (!currentUser) {
@@ -1765,10 +1786,10 @@ function installSeasonalStyles() {
 
     #pol-season-banner .pol-season-subtitle {
       display: block;
-      margin-top: 7px;
+      margin-top: 9px;
       font-size: 13px;
-      font-weight: 700;
-      letter-spacing: 2px;
+      font-weight: 800;
+      letter-spacing: 1px;
     }
 
     #pol-season-scene {
@@ -1782,8 +1803,8 @@ function installSeasonalStyles() {
 
     #pol-season-scene .pol-scene-corner {
       position: absolute;
-      font-size: clamp(34px, 6vw, 76px);
-      opacity: .9;
+      font-size: clamp(38px, 6vw, 76px);
+      opacity: .95;
       filter: drop-shadow(0 4px 5px #0002);
     }
 
@@ -1797,12 +1818,25 @@ function installSeasonalStyles() {
       top: 105px;
     }
 
+    /* FLOCONS QUI TOMBENT */
+
     #pol-season-scene .pol-snow {
       position: absolute;
+      top: -50px;
       color: #fff;
       text-shadow: 0 1px 5px #7aa9c9;
       line-height: 1;
-      opacity: .9;
+      opacity: .95;
+      animation: polSnowFall linear infinite;
+    }
+
+    @keyframes polSnowFall {
+      0% {
+        transform: translateY(-10vh) rotate(0deg);
+      }
+      100% {
+        transform: translateY(115vh) rotate(360deg);
+      }
     }
 
     #pol-holiday-countdown {
@@ -1818,41 +1852,6 @@ function installSeasonalStyles() {
       box-shadow: 0 5px 20px #0002;
       font-size: 12px;
       font-weight: 700;
-    }
-
-    #pol-season-admin-controls {
-      margin: 0 0 22px;
-      padding: 18px;
-      border: 2px solid #e49a32;
-      border-radius: 14px;
-      background: #fff8eb;
-      color: #302316;
-    }
-
-    #pol-season-admin-controls h3 {
-      margin: 0 0 8px;
-    }
-
-    #pol-season-admin-controls p {
-      margin: 0 0 12px;
-    }
-
-    #pol-season-admin-controls select,
-    #pol-season-admin-controls button {
-      min-height: 42px;
-      padding: 9px 12px;
-      border-radius: 8px;
-      border: 1px solid #c9a77d;
-      margin: 4px 6px 4px 0;
-      font: inherit;
-    }
-
-    #pol-season-admin-controls button {
-      cursor: pointer;
-      color: white;
-      background: #5b3a23;
-      border-color: #5b3a23;
-      font-weight: 800;
     }
 
     .pol-season-product-tag {
@@ -1885,7 +1884,7 @@ function installSeasonalStyles() {
   document.head.appendChild(style);
 }
 
-/* CRÉATION DES ÉLÉMENTS SAISONNIERS */
+/* CRÉATION DES ÉLÉMENTS */
 
 function createSeasonalElements() {
   if (!$("pol-season-banner")) {
@@ -1907,69 +1906,7 @@ function createSeasonalElements() {
   }
 }
 
-/* SÉLECTEUR DE SAISON DANS LE VRAI PANNEAU ADMIN */
-
-function renderSeasonAdminControls(area) {
-  if (!area || !isAdmin()) return;
-
-  const selected = seasonalTest || "auto";
-  const controls = document.createElement("section");
-
-  controls.id = "pol-season-admin-controls";
-
-  controls.innerHTML = `
-    <h3>🛠️ Tester les saisons du site</h3>
-
-    <p>
-      Choisis un événement pour prévisualiser son apparence
-      et vérifier la remise de 40 %.
-    </p>
-
-    <select id="pol-season-choice" aria-label="Choisir une saison">
-      <option value="auto" ${selected === "auto" ? "selected" : ""}>
-        Automatique (dates réelles)
-      </option>
-
-      <option value="halloween" ${selected === "halloween" ? "selected" : ""}>
-        🎃 Halloween
-      </option>
-
-      <option value="christmas" ${selected === "christmas" ? "selected" : ""}>
-        🎄 Noël
-      </option>
-
-      <option value="easter" ${selected === "easter" ? "selected" : ""}>
-        🐰 Pâques
-      </option>
-
-      <option value="none" ${selected === "none" ? "selected" : ""}>
-        Désactiver les saisons
-      </option>
-    </select>
-
-    <button type="button" id="pol-season-apply">
-      APPLIQUER LE TEST
-    </button>
-
-    <p id="pol-season-test-status" role="status"></p>
-  `;
-
-  area.prepend(controls);
-
-  $("pol-season-apply").addEventListener("click", () => {
-    seasonalTest = $("pol-season-choice").value;
-
-    applySeasonalEvent();
-    saveCart();
-
-    $("pol-season-test-status").textContent =
-      seasonalCurrentEvent
-        ? `Aperçu actif : ${seasonalEvents[seasonalCurrentEvent].name} — remise de 40 % activée dans le panier.`
-        : "Aucun événement actif. Les prix sont revenus au tarif normal.";
-  });
-}
-
-/* APPLICATION DE LA SAISON */
+/* APPLICATION AUTOMATIQUE DE LA SAISON */
 
 function applySeasonalEvent() {
   const banner = $("pol-season-banner");
@@ -1977,16 +1914,7 @@ function applySeasonalEvent() {
 
   if (!banner || !scene) return;
 
-  const eventName = seasonalTest === "auto"
-    ? getAutomaticSeason()
-    : seasonalTest === "none"
-      ? null
-      : seasonalTest;
-
-  seasonalCurrentEvent =
-    eventName && seasonalEvents[eventName]
-      ? eventName
-      : null;
+  seasonalCurrentEvent = getAutomaticSeason();
 
   document.documentElement.removeAttribute("data-pol-season");
   scene.innerHTML = "";
@@ -1997,7 +1925,6 @@ function applySeasonalEvent() {
   if (!seasonalCurrentEvent) {
     banner.style.display = "none";
     scene.style.display = "none";
-    banner.removeAttribute("style");
     return;
   }
 
@@ -2013,7 +1940,7 @@ function applySeasonalEvent() {
   banner.innerHTML = `
     ${event.emoji} ${event.message} ${event.emoji}
     <span class="pol-season-subtitle">
-      −40 % SUR TOUS LES ARTICLES
+      −40 % SUR TOUS LES ARTICLES • LIVRAISON GRATUITE
     </span>
   `;
 
@@ -2023,38 +1950,50 @@ function applySeasonalEvent() {
     scene.innerHTML = `
       <span class="pol-scene-corner pol-scene-left">🕸️</span>
       <span class="pol-scene-corner pol-scene-right">🦇</span>
+      <span class="pol-scene-corner" style="left:12px;bottom:35px">🎃</span>
+      <span class="pol-scene-corner" style="right:12px;bottom:35px">🕷️</span>
     `;
+  }
 
-  } else if (seasonalCurrentEvent === "christmas") {
-    /* Flocons fixes : décor de neige sans animation gênante. */
+  if (seasonalCurrentEvent === "christmas") {
+    const flakes = Array.from({ length: 35 }, (_, i) => {
+      const left = (i * 37 + 7) % 100;
+      const size = 12 + (i % 5) * 4;
+      const duration = 7 + (i % 8) * 1.5;
+      const delay = (i % 10) * -1.7;
 
-    const flakes = [
-      [4, 18, 19], [12, 38, 13], [22, 12, 16],
-      [31, 65, 12], [43, 25, 20], [54, 72, 14],
-      [63, 15, 17], [74, 46, 13], [84, 20, 19],
-      [94, 66, 14], [17, 83, 12], [89, 88, 18]
-    ];
+      return `
+        <span class="pol-snow"
+          style="
+            left:${left}%;
+            font-size:${size}px;
+            animation-duration:${duration}s;
+            animation-delay:${delay}s;
+          ">❄</span>
+      `;
+    }).join("");
 
-    scene.innerHTML = flakes.map(([left, top, size]) =>
-      `<span class="pol-snow" style="left:${left}%;top:${top}%;font-size:${size}px">❄</span>`
-    ).join("") + `
+    scene.innerHTML = flakes + `
       <span class="pol-scene-corner pol-scene-left">🎄</span>
       <span class="pol-scene-corner pol-scene-right">🎁</span>
+      <span class="pol-scene-corner" style="left:12px;bottom:35px">🎁</span>
+      <span class="pol-scene-corner" style="right:12px;bottom:35px">🎄</span>
     `;
+  }
 
-  } else {
+  if (seasonalCurrentEvent === "easter") {
     scene.innerHTML = `
-      <span class="pol-scene-corner pol-scene-left">🌷</span>
-      <span class="pol-scene-corner pol-scene-right">🐰</span>
+      <span class="pol-scene-corner pol-scene-left">🐰</span>
+      <span class="pol-scene-corner pol-scene-right">🐣</span>
+      <span class="pol-scene-corner" style="left:12px;bottom:35px">🥚</span>
+      <span class="pol-scene-corner" style="right:12px;bottom:35px">🌷</span>
     `;
   }
 
   document.querySelectorAll(".product-card").forEach(card => {
     const tag = document.createElement("div");
-
     tag.className = "pol-season-product-tag";
     tag.textContent = "−40 % OFFRE SAISONNIÈRE";
-
     card.appendChild(tag);
   });
 }
@@ -2065,63 +2004,43 @@ function updateHolidayCountdown() {
   const target = $("pol-holiday-countdown");
   if (!target) return;
 
-  if (seasonalTest !== "auto" && seasonalCurrentEvent) {
-    target.textContent =
-      `Mode test : ${seasonalEvents[seasonalCurrentEvent].name}`;
-    return;
-  }
-
   const next = getNextHoliday();
-  const difference = Math.max(
-    0,
-    next.date.getTime() - Date.now()
-  );
+  const difference = Math.max(0, next.date.getTime() - Date.now());
 
   const days = Math.floor(difference / 86400000);
-  const hours = Math.floor(
-    (difference % 86400000) / 3600000
-  );
-  const minutes = Math.floor(
-    (difference % 3600000) / 60000
-  );
-  const seconds = Math.floor(
-    (difference % 60000) / 1000
-  );
+  const hours = Math.floor((difference % 86400000) / 3600000);
+  const minutes = Math.floor((difference % 3600000) / 60000);
+  const seconds = Math.floor((difference % 60000) / 1000);
 
   target.textContent =
     `${seasonalEvents[next.key].emoji} ${seasonalEvents[next.key].name} : ` +
     `${days}j ${hours}h ${minutes}m ${seconds}s`;
 }
 
-/* DÉMARRAGE DU SYSTÈME */
+/* DÉMARRAGE */
 
 function startPOLBuyEvents() {
   installSeasonalStyles();
   createSeasonalElements();
   applySeasonalEvent();
   updateHolidayCountdown();
-  saveCart();
+  renderCart();
 
-  setInterval(updateHolidayCountdown, 1000);
+  setInterval(() => {
+    updateHolidayCountdown();
+
+    const currentSeason = getAutomaticSeason();
+
+    if (currentSeason !== seasonalCurrentEvent) {
+      applySeasonalEvent();
+      renderCart();
+    }
+  }, 1000);
 }
-
-/* AJOUT DU SÉLECTEUR DANS LE PANNEAU ADMIN */
-
-const originalRenderAdmin = renderAdmin;
-
-renderAdmin = async function () {
-  await originalRenderAdmin();
-
-  const area = $("admin-content");
-
-  if (area && isAdmin()) {
-    renderSeasonAdminControls(area);
-  }
-};
 
 startPOLBuyEvents();
 
-/* MISE À JOUR APRÈS CONNEXION FIREBASE */
+/* SYNCHRONISATION DU COMPTE */
 
 onAuthStateChanged(auth, user => {
   currentUser = user;
